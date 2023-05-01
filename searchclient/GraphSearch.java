@@ -32,6 +32,7 @@ public class GraphSearch {
 
         // Print everything in initialState
         System.err.println("Initial State: " + initialState);
+        System.err.println("Goal Map Representation: " + Utils.goalMapRepresentation);
 
 
         for (int i = 0; i < initialState.agentRows.length; i++) {
