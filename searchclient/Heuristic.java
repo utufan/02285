@@ -105,6 +105,12 @@ public abstract class Heuristic
                     int agentRow = s.agentRows[col];
                     int agentCol = s.agentCols[col];
                     int distance = manhattanDistance(agentRow, agentCol, boxRow, boxCol);
+                    char goal = s.goals[boxRow][boxCol];
+                    // check if the box is already at the goal, if so, do not add the cost of that
+                    if ('Z' >= goal && goal >= 'A' && s.boxes[row][col] == goal)
+                    {
+                        continue;
+                    }
                     if(agentBoxDistance.containsKey(agentColor)){
                         Integer entry = agentBoxDistance.get(agentColor);
                         if(entry > distance){

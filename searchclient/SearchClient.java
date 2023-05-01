@@ -4,15 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Locale;
+import java.util.*;
 
 public class SearchClient
 {
     public static State parseLevel(BufferedReader serverMessages)
-    throws IOException
+            throws IOException
     {
         // We can assume that the level file is conforming to specification, since the server verifies this.
         // Read domain
@@ -55,11 +52,11 @@ public class SearchClient
         ArrayList<String> levelLines = new ArrayList<>(64);
         line = serverMessages.readLine();
         while (!line.startsWith("#"))
-            {
-                levelLines.add(line);
-                numCols = Math.max(numCols, line.length());
-                ++numRows;
-                line = serverMessages.readLine();
+        {
+            levelLines.add(line);
+            numCols = Math.max(numCols, line.length());
+            ++numRows;
+            line = serverMessages.readLine();
         }
         int numAgents = 0;
         int[] agentRows = new int[10];
@@ -89,6 +86,88 @@ public class SearchClient
                 }
             }
         }
+
+        int numRows2 = levelLines.size();
+        int numCols2 = levelLines.stream().mapToInt(String::length).max().orElse(0);
+
+        int[][] intMap = new int[numRows2][numCols2];
+        for (int i = 0; i < numRows2; i++) {
+            String lineToRead = levelLines.get(i);
+            int lineLength = lineToRead.length();
+
+            for (int j = 0; j < numCols2; j++) {
+                if (j >= lineLength || lineToRead.charAt(j) == '+') {
+                    intMap[i][j] = -1; // wall or obstacle
+                } else {
+                    intMap[i][j] = i * numCols2 + j; // empty cell
+                }
+            }
+        }
+
+        int numVertices = numRows2 * numCols2;
+        List<List<Edge>> graph = new ArrayList<>();
+
+        for (int i = 0; i < numVertices; i++) {
+            graph.add(new ArrayList<>());
+        }
+
+        int[] dx = {-1, 0, 1, 0};
+        int[] dy = {0, 1, 0, -1};
+        double[][] dist = new double[numVertices][numVertices];
+
+        for (int i = 0; i < numRows2; i++) {
+            for (int j = 0; j < numCols2; j++) {
+                if (intMap[i][j] == -1) continue;
+
+                for (int k = 0; k < 4; k++) {
+                    int ni = i + dx[k];
+                    int nj = j + dy[k];
+
+                    if (ni >= 0 && ni < numRows2 && nj >= 0 && nj < numCols2 && intMap[ni][nj] != -1) {
+                        double distVal = Math.sqrt((ni - i) * (ni - i) + (nj - j) * (nj - j)); // Euclidean distance
+                        graph.get(intMap[i][j]).add(new Edge(intMap[ni][nj], distVal));
+                    }
+                }
+            }
+        }
+
+        int INF = 1000000000; // a very large number to represent infinity
+
+        // Compute the shortest distance between every pair of vertices using Floyd-Warshall algorithm
+        for (int i = 0; i < numVertices; i++) {
+            Arrays.fill(dist[i], INF);
+            dist[i][i] = 0;
+        }
+
+        for (int u = 0; u < numVertices; u++) {
+            int i = u / numCols2;
+            int j = u % numCols2;
+
+            for (Edge e : graph.get(u)) {
+                int v = e.to;
+                int ni = v / numCols2;
+                int nj = v % numCols2;
+
+                double distVal = Math.sqrt((ni - i) * (ni - i) + (nj - j) * (nj - j)); // Euclidean distance
+                dist[u][v] = distVal;
+            }
+        }
+
+        for (int k = 0; k < numVertices; k++) {
+            for (int i = 0; i < numVertices; i++) {
+                for (int j = 0; j < numVertices; j++) {
+                    dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
+            }
+        }
+
+        System.err.println("dist: \n" + Arrays.deepToString(dist));
+
+
+        printDistancesFromCell(intMap,dist,3,2);
+
+        System.err.println(getDistance(intMap,dist,3,2,3,7));
+
         agentRows = Arrays.copyOf(agentRows, numAgents);
         agentCols = Arrays.copyOf(agentCols, numAgents);
 
@@ -119,6 +198,46 @@ public class SearchClient
         return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals);
     }
 
+
+    public static double getDistance(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {
+        int startVertex = intMap[startX][startY];
+        int endVertex = intMap[endX][endY];
+        return dist[startVertex][endVertex];
+    }
+
+    public static void printDistancesFromCell(int[][] intMap, double[][] dist, int startRow, int startCol) {
+        int numRows = intMap.length;
+        int numCols = intMap[0].length;
+
+        // Print row labels and distances
+        System.err.println("Distances from cell (" + startRow + "," + startCol + "):");
+
+        // Print column labels
+        System.err.print("       ");
+        for (int j = 0; j < numCols; j++) {
+            System.err.printf("%4d", j);
+        }
+        System.err.println();
+
+
+        for (int i = 0; i < numRows; i++) {
+            System.err.printf("%4d   ", i);
+            for (int j = 0; j < numCols; j++) {
+                if (intMap[i][j] == -1) {
+                    System.err.printf("%4s", "####");
+                } else {
+                    double distance = dist[intMap[startRow][startCol]][intMap[i][j]];
+                    System.err.printf("%4.0f", distance);
+                }
+            }
+            System.err.println();
+        }
+    }
+
+
+
+
+
     public static Action[][] search(State initialState, Frontier frontier)
     {
         System.err.format("Starting %s.\n", frontier.getName());
@@ -127,7 +246,7 @@ public class SearchClient
     }
 
     public static void main(String[] args)
-    throws IOException
+            throws IOException
     {
         // Use stderr to print to the console.
         System.err.println("SearchClient initializing. I am sending this using the error output stream.");
@@ -178,14 +297,14 @@ public class SearchClient
                 default:
                     frontier = new FrontierBFS();
                     System.err.println("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or " +
-                                       "-greedy to set the search strategy.");
+                            "-greedy to set the search strategy.");
             }
         }
         else
         {
             frontier = new FrontierBFS();
             System.err.println("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or -greedy to " +
-                               "set the search strategy.");
+                    "set the search strategy.");
         }
 
         // Search for a plan.
