@@ -1,0 +1,7 @@
+[server][info] Running client on level: /Users/luis/Desktop/mas_final_project/levels/MAthomasAppartment_redcyan.lvl
+[client][error] Client closed its output stream before sending its name.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: No.
+[server][info] Actions used: 0.
+[server][info] Time to solve: 0.000 seconds.

@@ -1,0 +1,149 @@
+PS D:\my-stuffs\dtu\ai-multiagent-systems\warmup> java -jar mavis.jar -l .\levels\MAPF00.lvl -c "java searchclient.SearchClient -astar" -g -s 250 -t 180 
+[server][info] Running client on level: .\levels\MAPF00.lvl
+SearchClient initializing. I am sending this using the error output stream.
+[client][message] This is a comment.
+Starting best-first search using A* evaluation.
+#Expanded:       48, #Frontier:        0, #Generated:       48, Time: 0.003 s
+[Used: 3.44 MB, Free: 506.56 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 14.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 14.
+[server][info] Time to solve: 0.021 seconds.
+
+
+PS D:\my-stuffs\dtu\ai-multiagent-systems\warmup> java -jar mavis.jar -l .\levels\MAPF01.lvl -c "java searchclient.SearchClient -astar" -g -s 250 -t 180
+[server][info] Running client on level: .\levels\MAPF01.lvl
+SearchClient initializing. I am sending this using the error output stream.
+[client][message] This is a comment.
+Starting best-first search using A* evaluation.
+#Expanded:    2,255, #Frontier:       48, #Generated:    2,303, Time: 0.054 s
+[Used: 8.22 MB, Free: 501.78 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 14.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 14.
+[server][info] Time to solve: 0.075 seconds.
+
+
+PS D:\my-stuffs\dtu\ai-multiagent-systems\warmup> java -jar mavis.jar -l .\levels\MAPF02.lvl -c "java searchclient.SearchClient -astar" -g -s 250 -t 180
+[server][info] Running client on level: .\levels\MAPF02.lvl
+SearchClient initializing. I am sending this using the error output stream.
+[client][message] This is a comment.
+Starting best-first search using A* evaluation.
+#Expanded:    9,999, #Frontier:   15,457, #Generated:   25,456, Time: 0.535 s
+[Used: 249.45 MB, Free: 260.55 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   19,999, #Frontier:   18,078, #Generated:   38,077, Time: 1.005 s
+[Used: 199.51 MB, Free: 310.49 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   29,999, #Frontier:   26,303, #Generated:   56,302, Time: 1.399 s
+[Used: 89.19 MB, Free: 522.81 MB, Alloc: 612.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   39,999, #Frontier:   24,974, #Generated:   64,973, Time: 1.789 s
+[Used: 285.81 MB, Free: 326.19 MB, Alloc: 612.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   49,999, #Frontier:   25,356, #Generated:   75,355, Time: 2.157 s
+[Used: 99.74 MB, Free: 636.26 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   59,999, #Frontier:   25,117, #Generated:   85,116, Time: 2.550 s
+[Used: 184.21 MB, Free: 551.79 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   69,999, #Frontier:   17,808, #Generated:   87,807, Time: 2.845 s
+[Used: 205.58 MB, Free: 530.42 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   79,999, #Frontier:   16,534, #Generated:   96,533, Time: 3.179 s
+[Used: 237.33 MB, Free: 498.67 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   89,999, #Frontier:   11,158, #Generated:  101,157, Time: 3.550 s
+[Used: 260.29 MB, Free: 623.71 MB, Alloc: 884.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   99,999, #Frontier:    5,835, #Generated:  105,834, Time: 3.856 s
+[Used: 145.45 MB, Free: 738.55 MB, Alloc: 884.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:  105,842, #Frontier:    2,348, #Generated:  108,190, Time: 3.995 s
+[Used: 342.45 MB, Free: 541.55 MB, Alloc: 884.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 14.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 14.
+[server][info] Time to solve: 4.010 seconds.
+
+
+PS D:\my-stuffs\dtu\ai-multiagent-systems\warmup> java -jar mavis.jar -l .\levels\MAPF02C.lvl -c "java searchclient.SearchClient -astar" -g -s 250 -t 180
+[server][info] Running client on level: .\levels\MAPF02C.lvl
+SearchClient initializing. I am sending this using the error output stream.
+[client][message] This is a comment.
+Starting best-first search using A* evaluation.
+#Expanded:    9,999, #Frontier:   15,457, #Generated:   25,456, Time: 0.535 s
+[Used: 249.42 MB, Free: 260.58 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   19,999, #Frontier:   18,078, #Generated:   38,077, Time: 1.001 s
+[Used: 200.01 MB, Free: 309.99 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   29,999, #Frontier:   26,303, #Generated:   56,302, Time: 1.396 s
+[Used: 88.64 MB, Free: 523.36 MB, Alloc: 612.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   39,999, #Frontier:   25,098, #Generated:   65,097, Time: 1.783 s
+[Used: 281.03 MB, Free: 330.97 MB, Alloc: 612.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   49,999, #Frontier:   25,960, #Generated:   75,959, Time: 2.146 s
+[Used: 85.68 MB, Free: 650.32 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   59,999, #Frontier:   24,228, #Generated:   84,227, Time: 2.552 s
+[Used: 171.49 MB, Free: 564.51 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   69,999, #Frontier:   18,716, #Generated:   88,715, Time: 2.873 s
+[Used: 191.18 MB, Free: 544.82 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   79,999, #Frontier:   17,038, #Generated:   97,037, Time: 3.243 s
+[Used: 234.26 MB, Free: 501.74 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   89,999, #Frontier:   11,433, #Generated:  101,432, Time: 3.601 s
+[Used: 251.32 MB, Free: 484.68 MB, Alloc: 736.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   98,989, #Frontier:    7,061, #Generated:  106,050, Time: 3.932 s
+[Used: 190.74 MB, Free: 693.26 MB, Alloc: 884.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 14.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 14.
+[server][info] Time to solve: 3.947 seconds.
+
+
+MAPF03.lvl and MAPF03C.lvl could not compute solutions within time limit
+
+PS D:\my-stuffs\dtu\ai-multiagent-systems\warmup> java -jar mavis.jar -l .\levels\MAPFslidingpuzzle.lvl -c "java searchclient.SearchClient -astar" -g -s 250 -t 180
+[server][info] Running client on level: .\levels\MAPFslidingpuzzle.lvl
+SearchClient initializing. I am sending this using the error output stream.
+[client][message] This is a comment.
+Starting best-first search using A* evaluation.
+#Expanded:    9,999, #Frontier:    5,654, #Generated:   15,653, Time: 0.132 s
+[Used: 17.17 MB, Free: 492.83 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   19,999, #Frontier:    9,879, #Generated:   29,878, Time: 0.218 s
+[Used: 145.17 MB, Free: 364.83 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   29,999, #Frontier:   13,789, #Generated:   43,788, Time: 0.286 s
+[Used: 134.17 MB, Free: 375.83 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   39,999, #Frontier:   16,646, #Generated:   56,645, Time: 0.356 s
+[Used: 103.89 MB, Free: 406.11 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   49,999, #Frontier:   19,674, #Generated:   69,673, Time: 0.439 s
+[Used: 238.89 MB, Free: 271.11 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   59,999, #Frontier:   21,681, #Generated:   81,680, Time: 0.549 s
+[Used: 100.41 MB, Free: 627.59 MB, Alloc: 728.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   69,999, #Frontier:   23,441, #Generated:   93,440, Time: 0.659 s
+[Used: 236.41 MB, Free: 491.59 MB, Alloc: 728.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   79,999, #Frontier:   23,791, #Generated:  103,790, Time: 0.778 s
+[Used: 61.24 MB, Free: 666.76 MB, Alloc: 728.00 MB, MaxAlloc: 8146.00 MB]
+#Expanded:   80,610, #Frontier:   23,779, #Generated:  104,389, Time: 0.785 s
+[Used: 69.24 MB, Free: 658.76 MB, Alloc: 728.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 28.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 28.
+[server][info] Time to solve: 0.804 seconds.
+
+MAPFreorder2.lvl
+#Expanded: 3,569,164, #Frontier:   30,991, #Generated: 3,600,155, Time: 136.536 s
+[Used: 2484.65 MB, Free: 365.35 MB, Alloc: 2850.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 40.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 40.
+[server][info] Time to solve: 136.555 seconds.
+
+
+MAbfsfriendly.lvl (our created one)
+[Used: 253.61 MB, Free: 256.39 MB, Alloc: 510.00 MB, MaxAlloc: 8146.00 MB]
+Found solution of length 9.
+[client][info] Waiting for client process to terminate by itself.
+[client][info] Client terminated.
+[server][info] Level solved: Yes.
+[server][info] Actions used: 9.
+[server][info] Time to solve: 0.633 seconds.

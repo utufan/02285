@@ -1,0 +1,2 @@
+[server][info] Running client on level: /Users/luis/Desktop/mas_final_project/levels/SAD3.lvl
+[client][message] This is a comment.
