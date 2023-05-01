@@ -161,7 +161,7 @@ public class SearchClient
             }
         }
 
-        System.err.println("dist: \n" + Arrays.deepToString(dist));
+//        System.err.println("dist: \n" + Arrays.deepToString(dist));
 
 
         printDistancesFromCell(intMap,dist,3,2);
@@ -195,7 +195,7 @@ public class SearchClient
         // End
         // line is currently "#end"
 
-        return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals);
+        return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals, intMap, dist);
     }
 
 
@@ -261,6 +261,8 @@ public class SearchClient
         BufferedReader serverMessages = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.US_ASCII));
         State initialState = SearchClient.parseLevel(serverMessages);
 
+        System.err.println(new HeuristicWeightedAStar(initialState, 5).h(initialState));
+
         // Select search strategy.
         Frontier frontier;
         if (args.length > 0)
@@ -277,7 +279,7 @@ public class SearchClient
                     frontier = new FrontierBestFirst(new HeuristicAStar(initialState));
                     break;
                 case "-wastar":
-                    int w = 5;
+                    int w = 20;
                     if (args.length > 1)
                     {
                         try

@@ -76,6 +76,15 @@ public abstract class Heuristic
             }
         }
 
+        // take an agent and a goal it is looking if it can complete
+        // check if agent can reach the box or not
+        // if it can reach the box, check if the box can reach the goal (goal is not blocked on a path)
+        
+
+
+
+
+
         int cost = 0;
         // Assuming all boxes have one goal we dont need a hashmap
         for (int row = 0; row < this.goalChars.size(); row++) {
@@ -87,7 +96,12 @@ public abstract class Heuristic
                 if (goal == box) {
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
-                    int distance = manhattanDistance(goalRow, goalCol, boxRow, boxCol);
+                    int distance = (int) SearchClient.getDistance(State.intMap, State.distMap, goalRow, goalCol, boxRow, boxCol);
+
+                    if (goalRow == boxRow && goalCol == boxCol) {
+                        System.err.println("Goal: " + goal + " is already at the goal");
+                    }
+
                     //System.err.println("distance goal: " + distance);
                     cost += distance;
                 }
@@ -95,45 +109,47 @@ public abstract class Heuristic
         }
         // hashmap to keep track of closest box
         Map<Color, Integer> agentBoxDistance = new HashMap<>();
-        for (int row = 0; row < boxes.size(); row++) {
-            Color boxColor = boxesColor.get(row);
-            int boxRow = boxRows.get(row);
-            int boxCol = boxCols.get(row);
-            for (int col = 0; col < s.agentRows.length; col++) {
-                Color agentColor = s.agentColors[col];
-                if(agentColor == boxColor) {
-                    int agentRow = s.agentRows[col];
-                    int agentCol = s.agentCols[col];
-                    int distance = manhattanDistance(agentRow, agentCol, boxRow, boxCol);
-                    char goal = s.goals[boxRow][boxCol];
-                    // check if the box is already at the goal, if so, do not add the cost of that
-                    if ('Z' >= goal && goal >= 'A' && s.boxes[row][col] == goal)
-                    {
-                        continue;
-                    }
-                    if(agentBoxDistance.containsKey(agentColor)){
-                        Integer entry = agentBoxDistance.get(agentColor);
-                        if(entry > distance){
-                            agentBoxDistance.put(agentColor, distance);
-                        }
-                    }
-                    else{
-                        agentBoxDistance.put(agentColor, distance);
-                    }
-                    //System.err.println("agentRow: " + agentRow + "agentCol: " + agentCol + "boxRow: " + boxRow + "boxCol: " + boxCol);
-                    //System.err.println("distance box: " + distance);
-                }
-            }
-        }
+//        for (int row = 0; row < boxes.size(); row++) {
+//            Color boxColor = boxesColor.get(row);
+//            int boxRow = boxRows.get(row);
+//            int boxCol = boxCols.get(row);
+//            for (int col = 0; col < s.agentRows.length; col++) {
+//                Color agentColor = s.agentColors[col];
+//                if(agentColor == boxColor) {
+//                    int agentRow = s.agentRows[col];
+//                    int agentCol = s.agentCols[col];
+//                    int distance = (int) SearchClient.getDistance(State.intMap, State.distMap, agentRow, agentCol, boxRow, boxCol);
+//                    char goal = s.goals[boxRow][boxCol];
+//                    // check if the box is already at the goal, if so, do not add the cost of that
+//                    if ('Z' >= goal && goal >= 'A' && s.boxes[row][col] == goal)
+//                    {
+//                        continue;
+//                    }
+//                    if(agentBoxDistance.containsKey(agentColor)){
+//                        Integer entry = agentBoxDistance.get(agentColor);
+//                        if(entry > distance){
+//                            agentBoxDistance.put(agentColor, distance);
+//                        }
+//                    }
+//                    else{
+//                        agentBoxDistance.put(agentColor, distance);
+//                    }
+//                    //System.err.println("agentRow: " + agentRow + "agentCol: " + agentCol + "boxRow: " + boxRow + "boxCol: " + boxCol);
+//                    //System.err.println("distance box: " + distance);
+//                }
+//            }
+//        }
 
         // Iterating HashMap through for loop
-        for (Map.Entry<Color, Integer> set :
-             agentBoxDistance.entrySet()) {
-
-             cost += set.getValue();
-        }
+//        for (Map.Entry<Color, Integer> set :
+//             agentBoxDistance.entrySet()) {
+//
+//             cost += set.getValue();
+//        }
 
 //        System.err.println("h(n): " + cost);
+
+
         return cost;
     }
     public abstract int f(State s);
@@ -181,6 +197,7 @@ class HeuristicWeightedAStar
     public int f(State s)
     {
         return s.g() + this.w * this.h(s);
+//        return s.g() < this.h(s) ? s.g() + this.w * h(s) : (s.g() + (2 * this.w - 1) * this.h(s)) / this.w;
     }
 
     @Override
