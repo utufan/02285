@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static searchclient.Utils.calculateEdges;
+
 public class SearchClient
 {
     public static State parseLevel(BufferedReader serverMessages)
@@ -87,26 +89,65 @@ public class SearchClient
             }
         }
 
+        List<List<Vertex>> goalMapRepresentation = new ArrayList<>();
         int numRows2 = levelLines.size();
         int numCols2 = levelLines.stream().mapToInt(String::length).max().orElse(0);
 
         int[][] intMap = new int[numRows2][numCols2];
+//        for (int i = 0; i < numRows2; i++) {
+//            String lineToRead = levelLines.get(i);
+//            int lineLength = lineToRead.length();
+//
+//            for (int j = 0; j < numCols2; j++) {
+//                if (j >= lineLength || lineToRead.charAt(j) == '+') {
+//                    intMap[i][j] = -1; // wall or obstacle
+//                } else {
+//                    intMap[i][j] = i * numCols2 + j; // empty cell
+//                }
+//            }
+//        }
         for (int i = 0; i < numRows2; i++) {
             String lineToRead = levelLines.get(i);
             int lineLength = lineToRead.length();
-
+            var rowRepresentation = new ArrayList<Vertex>();
             for (int j = 0; j < numCols2; j++) {
+                // Here, we can find out if isWall, isAgent, isBox are true or false, but the others are needed by
+                // preprocessing
                 if (j >= lineLength || lineToRead.charAt(j) == '+') {
+                    var cell = new Vertex(i, j);
+                    cell.isWall = true;
                     intMap[i][j] = -1; // wall or obstacle
+                    rowRepresentation.add(cell);
                 } else {
+                    var cell = new Vertex(i, j);
+//                    cell.isWall = false;
+                    // We need to check if it is a goal. If it is a goal, it should ignore the other checks and be free
+//                    if (Character.isDigit(lineToRead.charAt(j)))
+//                        cell.isAgent = true;
+//                    else if (Character.isUpperCase(lineToRead.charAt(j)))
+//                        cell.isBox = true;
+//                    else
+//                        cell.isFree = true;
                     intMap[i][j] = i * numCols2 + j; // empty cell
+                    rowRepresentation.add(cell);
                 }
+            }
+            goalMapRepresentation.add(rowRepresentation); // Move this line outside the inner loop
+        }
+
+        // This is a hack
+        var mapAsArray = goalMapRepresentation.stream()
+                .map(l -> l.toArray(Vertex[]::new))
+                .toArray(Vertex[][]::new);
+
+        for (var row : goalMapRepresentation) {
+            for (var cell : row) {
+                calculateEdges(goalMapRepresentation, cell, mapAsArray.length, mapAsArray[0].length);
             }
         }
 
         int numVertices = numRows2 * numCols2;
         List<List<Edge>> graph = new ArrayList<>();
-
         for (int i = 0; i < numVertices; i++) {
             graph.add(new ArrayList<>());
         }
@@ -161,12 +202,70 @@ public class SearchClient
             }
         }
 
+
+//        int numVertices = numRows2 * numCols2;
+//        List<List<Edge>> graph = new ArrayList<>();
+
+//        for (int i = 0; i < numVertices; i++) {
+//            graph.add(new ArrayList<>());
+//        }
+//
+//        int[] dx = {-1, 0, 1, 0};
+//        int[] dy = {0, 1, 0, -1};
+//        double[][] dist = new double[numVertices][numVertices];
+//
+//        for (int i = 0; i < numRows2; i++) {
+//            for (int j = 0; j < numCols2; j++) {
+//                if (intMap[i][j] == -1) continue;
+//
+//                for (int k = 0; k < 4; k++) {
+//                    int ni = i + dx[k];
+//                    int nj = j + dy[k];
+//
+//                    if (ni >= 0 && ni < numRows2 && nj >= 0 && nj < numCols2 && intMap[ni][nj] != -1) {
+//                        double distVal = Math.sqrt((ni - i) * (ni - i) + (nj - j) * (nj - j)); // Euclidean distance
+//                        graph.get(intMap[i][j]).add(new Edge(intMap[ni][nj], distVal));
+//                    }
+//                }
+//            }
+//        }
+//
+//        int INF = 1000000000; // a very large number to represent infinity
+//
+//        // Compute the shortest distance between every pair of vertices using Floyd-Warshall algorithm
+//        for (int i = 0; i < numVertices; i++) {
+//            Arrays.fill(dist[i], INF);
+//            dist[i][i] = 0;
+//        }
+//
+//        for (int u = 0; u < numVertices; u++) {
+//            int i = u / numCols2;
+//            int j = u % numCols2;
+//
+//            for (Edge e : graph.get(u)) {
+//                int v = e.to;
+//                int ni = v / numCols2;
+//                int nj = v % numCols2;
+//
+//                double distVal = Math.sqrt((ni - i) * (ni - i) + (nj - j) * (nj - j)); // Euclidean distance
+//                dist[u][v] = distVal;
+//            }
+//        }
+//
+//        for (int k = 0; k < numVertices; k++) {
+//            for (int i = 0; i < numVertices; i++) {
+//                for (int j = 0; j < numVertices; j++) {
+//                    dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
+//                }
+//            }
+//        }
+
 //        System.err.println("dist: \n" + Arrays.deepToString(dist));
 
 
-        printDistancesFromCell(intMap,dist,3,2);
+//        printDistancesFromCell(intMap,dist,3,2);
 
-        System.err.println(getDistance(intMap,dist,3,2,3,7));
+//        System.err.println(getDistance(intMap,dist,3,2,3,7));
 
         agentRows = Arrays.copyOf(agentRows, numAgents);
         agentCols = Arrays.copyOf(agentCols, numAgents);
@@ -185,12 +284,17 @@ public class SearchClient
                 if (('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))
                 {
                     goals[row][col] = c;
+                    // now we need to update the graph representation of the map
+                    goalMapRepresentation.get(row).get(col).isGoal = true;
                 }
             }
 
             ++row;
             line = serverMessages.readLine();
         }
+
+        // save the goal map representation
+        Utils.goalMapRepresentation = goalMapRepresentation;
 
         // End
         // line is currently "#end"
