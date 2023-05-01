@@ -26,6 +26,10 @@ public abstract class Heuristic
                 }
             }
         }
+//        List<Character> characters = determineGoalOrder(s.boxes, s.goals);
+//        for (char c : characters) {
+//            System.err.print(c + " ");
+//        }
     }
 
     // TODO Research: difference between edge and node representation
@@ -49,6 +53,66 @@ public abstract class Heuristic
         int totalDistance = 0;
         totalDistance += Math.abs(agentRow - agentGoalRow) + Math.abs(agentCol - agentGoalCol);
         return totalDistance;
+    }
+
+    public List<Character> determineGoalOrder(char[][] boxes, char[][] goals) {
+        List<Character> goalOrder = new ArrayList<>();
+
+        // Identify goals and their positions
+        Map<Character, int[]> goalPositions = new HashMap<>();
+        for (int i = 0; i < goals.length; i++) {
+            for (int j = 0; j < goals[0].length; j++) {
+                if (goals[i][j] != 0) {
+                    char goal = goals[i][j];
+                    int[] position = {i, j};
+                    goalPositions.put(goal, position);
+                    goalOrder.add(goal);
+                }
+            }
+        }
+
+        // Sort goals by position
+        Collections.sort(goalOrder, (c1, c2) -> {
+            int[] p1 = goalPositions.get(c1);
+            int[] p2 = goalPositions.get(c2);
+            if (p1[1] != p2[1]) {
+                return Integer.compare(p1[1], p2[1]);
+            }
+            return Integer.compare(p1[0], p2[0]);
+        });
+
+        // Reorder goals based on box positions
+        Set<Character> visitedGoals = new HashSet<>();
+        for (int i = 0; i < goalOrder.size(); i++) {
+            char goal = goalOrder.get(i);
+            if (!visitedGoals.contains(goal)) {
+                int[] goalPosition = goalPositions.get(goal);
+                Character box = getBoxAtPosition(goalPosition[0], goalPosition[1], boxes);
+                if (box != null) {
+                    visitedGoals.add(goal);
+                    visitedGoals.add(box);
+                    goalOrder.remove(Character.valueOf(goal));
+                    goalOrder.remove(box);
+                    int index = goalOrder.indexOf(box);
+                    goalOrder.add(index, box);
+                    goalOrder.add(index + 1, goal);
+                    i = -1;
+                }
+            }
+        }
+
+        return goalOrder;
+    }
+
+    private Character getBoxAtPosition(int x, int y, char[][] boxes) {
+        for (int i = 0; i < boxes.length; i++) {
+            for (int j = 0; j < boxes[0].length; j++) {
+                if (boxes[i][j] != 0 && i == x && j == y) {
+                    return boxes[i][j];
+                }
+            }
+        }
+        return null;
     }
 
     // Verify when this gets executed by the searchclient and you need to add the following for the command being
@@ -79,10 +143,6 @@ public abstract class Heuristic
         // take an agent and a goal it is looking if it can complete
         // check if agent can reach the box or not
         // if it can reach the box, check if the box can reach the goal (goal is not blocked on a path)
-        
-
-
-
 
 
         int cost = 0;
@@ -98,9 +158,9 @@ public abstract class Heuristic
                     int boxCol = boxCols.get(col);
                     int distance = (int) SearchClient.getDistance(State.intMap, State.distMap, goalRow, goalCol, boxRow, boxCol);
 
-                    if (goalRow == boxRow && goalCol == boxCol) {
-                        System.err.println("Goal: " + goal + " is already at the goal");
-                    }
+//                    if (goalRow == boxRow && goalCol == boxCol) {
+//                        System.err.println("Goal: " + goal + " is already at the goal");
+//                    }
 
                     //System.err.println("distance goal: " + distance);
                     cost += distance;

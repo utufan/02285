@@ -279,7 +279,7 @@ public class SearchClient
                     frontier = new FrontierBestFirst(new HeuristicAStar(initialState));
                     break;
                 case "-wastar":
-                    int w = 20;
+                    int w = 5;
                     if (args.length > 1)
                     {
                         try
