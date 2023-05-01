@@ -29,7 +29,7 @@ public class Goal {
         this.row = row;
         this.col = col;
         // This is just for debugging purposes
-        System.out.println("New Goal at " + this.row + ", " + this.col);
+        System.err.println("New Goal at " + this.row + ", " + this.col);
     }
 
     public String toString() {

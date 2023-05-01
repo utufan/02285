@@ -127,7 +127,7 @@ public abstract class Heuristic
              cost += set.getValue();
         }
 
-        System.err.println("h(n): " + cost);
+//        System.err.println("h(n): " + cost);
         return cost;
     }
     public abstract int f(State s);

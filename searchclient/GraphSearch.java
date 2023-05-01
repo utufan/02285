@@ -31,7 +31,7 @@ public class GraphSearch {
         List<Goal> initialGoals = new ArrayList<>();
 
         // Print everything in initialState
-        System.out.println("Initial State: " + initialState);
+        System.err.println("Initial State: " + initialState);
 
 
         for (int i = 0; i < initialState.agentRows.length; i++) {
@@ -43,7 +43,7 @@ public class GraphSearch {
             agents.add(new Agent(Integer.toString(i), State.agentColors[i], initialState.agentRows[i], initialState.agentCols[i]));
         }
 
-        System.out.println("Agents: " + agents);
+        System.err.println("Agents: " + agents);
 
         // Now that we get the individual box information, NOW we have to find their characters on the board...
         // This is only on the initial state, I have no idea what should be done for subsequent states
@@ -58,7 +58,7 @@ public class GraphSearch {
             }
         }
 
-        System.out.println("Boxes: " + boxes);
+        System.err.println("Boxes: " + boxes);
 
         // Now we need to find the goals on the map
         for (int i = 0; i < State.goals.length; i++) {
@@ -69,7 +69,7 @@ public class GraphSearch {
             }
         }
 
-        System.out.println("Goals: " + initialGoals);
+        System.err.println("Goals: " + initialGoals);
 
         // TODO: I can't help but keep coming back to thinking of a need to address a situation in which an agent
         // cannot complete an objective. It could either be the result of a blocking box, agent, or otherwise. I would
