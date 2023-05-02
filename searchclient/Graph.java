@@ -61,4 +61,81 @@ class Graph {
         Vertex v = verticesMap.get(key);
         return adjVertices.get(new Vertex(x, y));
     }
+
+    public List<Vertex> determine_goal_ordering(Map<Vertex, List<Vertex>> adjVertices) {
+        // Identify all goal vertices
+        List<Vertex> goals = new ArrayList<>();
+        for (Vertex v : adjVertices.keySet()) {
+            if (v.isGoal) {
+                goals.add(v);
+            }
+        }
+
+        // Build goal dependency graph
+        Map<Vertex, List<Vertex>> goalDependencies = new LinkedHashMap<>();
+        for (Vertex goal1 : goals) {
+            for (Vertex goal2 : goals) {
+                if (goal1 != goal2 && pathBlocked(goal1, goal2, goals)) {
+                    goalDependencies.computeIfAbsent(goal1, k -> new ArrayList<>()).add(goal2);
+                }
+            }
+        }
+
+        // Perform topological sort on goalDependencies
+        List<Vertex> orderedGoals = topologicalSort(goalDependencies);
+
+        return orderedGoals;
+    }
+
+    public boolean pathBlocked(Vertex goal1, Vertex goal2, List<Vertex> goals) {
+        for (Vertex goal : goals) {
+            if (goal == goal1 || goal == goal2) {
+                continue;
+            }
+            // Check if 'goal' lies on the direct path from 'goal1' to 'goal2'
+            if (isOnPath(goal1, goal2, goal)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Vertex> topologicalSort(Map<Vertex, List<Vertex>> graph) {
+        Stack<Vertex> stack = new Stack<>();
+        Set<Vertex> visited = new HashSet<>();
+
+        for (Vertex v : graph.keySet()) {
+            if (!visited.contains(v)) {
+                topologicalSortUtil(v, visited, stack, graph);
+            }
+        }
+
+        List<Vertex> result = new ArrayList<>();
+        while (!stack.empty()) {
+            result.add(stack.pop());
+        }
+        return result;
+    }
+
+    private void topologicalSortUtil(Vertex v, Set<Vertex> visited, Stack<Vertex> stack, Map<Vertex, List<Vertex>> graph) {
+        visited.add(v);
+        for (Vertex neighbor : graph.get(v)) {
+            if (!visited.contains(neighbor)) {
+                topologicalSortUtil(neighbor, visited, stack, graph);
+            }
+        }
+        stack.push(v);
+    }
+
+    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
+        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
+        int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
+        int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
+
+        return v1_v2_distance == v1_v_distance + v_v2_distance;
+    }
+
+
+
+
 }
