@@ -88,16 +88,16 @@ class Graph {
     }
 
     public boolean pathBlocked(Vertex goal1, Vertex goal2, List<Vertex> goals) {
-        for (Vertex goal : goals) {
-            if (goal == goal1 || goal == goal2) {
-                continue;
-            }
-            // Check if 'goal' lies on the direct path from 'goal1' to 'goal2'
-            if (isOnPath(goal1, goal2, goal)) {
-                return true;
-            }
-        }
-        return false;
+//        for (Vertex goal : goals) {
+////            if (goal == goal1 || goal == goal2) {
+////                continue;
+////            }
+//            // Check if 'goal' lies on the direct path from 'goal1' to 'goal2'
+//            if (isBlockingAccess(goal1, goal2, adjVertices)) {
+//                return true;
+//            }
+//        }
+        return isBlockingAccess(goal1, goal2, adjVertices);
     }
 
     public List<Vertex> topologicalSort(Map<Vertex, List<Vertex>> graph) {
@@ -127,13 +127,70 @@ class Graph {
         stack.push(v);
     }
 
-    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
-        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
-        int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
-        int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
+    public boolean isBlockingAccess(Vertex v1, Vertex v2, Map<Vertex, List<Vertex>> adjVertices) {
+        Set<Vertex> visited = new HashSet<>();
+        Queue<Vertex> queue = new LinkedList<>();
 
-        return v1_v2_distance == v1_v_distance + v_v2_distance;
+        visited.add(v1);
+        visited.add(v2); // Treat v2 as a blocking element
+        queue.add(v1);
+
+        // Perform a breadth-first search (BFS) from v1, ignoring v2 as a blocking element
+        while (!queue.isEmpty()) {
+            Vertex current = queue.poll();
+            List<Vertex> neighbors = adjVertices.get(current);
+
+            if (neighbors != null) {
+                for (Vertex neighbor : neighbors) {
+                    if (!visited.contains(neighbor)) {
+                        visited.add(neighbor);
+                        queue.add(neighbor);
+                    }
+                }
+            }
+        }
+
+        // Check if there are any unvisited vertices (excluding v2) in the map, meaning v2 is blocking access
+        for (Vertex v : adjVertices.keySet()) {
+            if (!visited.contains(v) && !v.equals(v2) && v.isGoal) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    public boolean isOnPath(Vertex v1, Vertex v2) {
+        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
+        for (Vertex v : adjVertices.get(v1)) {
+            int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
+            int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
+            if (v1_v2_distance == v1_v_distance + v_v2_distance) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+//    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
+//        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
+//        int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
+//        int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
+//
+//        return v1_v2_distance == v1_v_distance + v_v2_distance;
+//    }
+
+//    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
+//        // Check if 'v' lies on the vertical line segment between 'v1' and 'v2'
+//        if (v1.locRow == v2.locRow && v1.locRow == v.locRow) {
+//            return (Math.min(v1.locCol, v2.locCol) <= v.locCol && v.locCol <= Math.max(v1.locCol, v2.locCol));
+//        }
+//        // Check if 'v' lies on the horizontal line segment between 'v1' and 'v2'
+//        else if (v1.locCol == v2.locCol && v1.locCol == v.locCol) {
+//            return (Math.min(v1.locRow, v2.locRow) <= v.locRow && v.locRow <= Math.max(v1.locRow, v2.locRow));
+//        }
+//        return false;
+//    }
 
 
 
