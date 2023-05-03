@@ -77,6 +77,11 @@ class Graph {
 
         // Build goal dependency graph
         Map<Vertex, List<Vertex>> goalDependencies = new LinkedHashMap<>();
+
+        for (var goal: goalMap.values()) {
+            goalDependencies.put(goal, new ArrayList<>());
+        }
+
         for (Vertex goal1 : goalMap.values()) {
             for (Vertex goal2 : goalMap.values()) {
                 if (goal1 != goal2 && pathBlocked(goal1, goal2, goalMap, boxMap)) {
@@ -92,34 +97,40 @@ class Graph {
     }
 
     public boolean pathBlocked(Vertex goal1, Vertex goal2, Map<Character, Vertex> goalMap, Map<Character, Vertex> boxMap) {
-//        for (Vertex goal : goals) {
-////            if (goal == goal1 || goal == goal2) {
-////                continue;
-////            }
-//            // Check if 'goal' lies on the direct path from 'goal1' to 'goal2'
-//            if (isBlockingAccess(goal1, goal2, adjVertices)) {
-//                return true;
-//            }
-//        }
         return isBlockingAccess(goal1, goal2, goalMap, boxMap, adjVertices);
     }
 
-    public List<Vertex> topologicalSort(Map<Vertex, List<Vertex>> graph) {
-        Stack<Vertex> stack = new Stack<>();
-        Set<Vertex> visited = new HashSet<>();
+    private static void dfs(Map<Vertex, List<Vertex>> graph, Vertex vertex, Set<Vertex> visited, Stack<Vertex> stack) {
+        visited.add(vertex);
+        List<Vertex> neighbors = graph.get(vertex);
+        if (neighbors != null) {
+            for (Vertex neighbor : neighbors) {
+                if (!visited.contains(neighbor)) {
+                    dfs(graph, neighbor, visited, stack);
+                }
+            }
+        }
+        stack.push(vertex);
+    }
 
-        for (Vertex v : graph.keySet()) {
-            if (!visited.contains(v)) {
-                topologicalSortUtil(v, visited, stack, graph);
+    public static List<Vertex> topologicalSort(Map<Vertex, List<Vertex>> goalDependencies) {
+        Set<Vertex> visited = new HashSet<>();
+        Stack<Vertex> stack = new Stack<>();
+
+        for (Vertex vertex : goalDependencies.keySet()) {
+            if (!visited.contains(vertex)) {
+                dfs(goalDependencies, vertex, visited, stack);
             }
         }
 
-        List<Vertex> result = new ArrayList<>();
-        while (!stack.empty()) {
-            result.add(stack.pop());
+        List<Vertex> sortedGoals = new ArrayList<>();
+        while (!stack.isEmpty()) {
+            sortedGoals.add(stack.pop());
         }
-        return result;
+
+        return sortedGoals;
     }
+
 
     private void topologicalSortUtil(Vertex v, Set<Vertex> visited, Stack<Vertex> stack, Map<Vertex, List<Vertex>> graph) {
         visited.add(v);
@@ -135,10 +146,17 @@ class Graph {
         Set<Vertex> visited = new HashSet<>();
         Queue<Vertex> queue = new LinkedList<>();
 
-        visited.add(v1);
+//        visited.add(v1);
         visited.add(v2); // Treat v2 as a blocking element
 
-        Vertex v1_box = boxMap.get(v1.boxChar);
+        // if it is an agent goal, we need to find the agent
+        if (boxMap.get(v1.goalChar) == null) {
+            // Should be the location of the agent
+            return false;
+        }
+        Vertex v1_box = boxMap.get(v1.goalChar);
+
+
         //Should be the location of the box that needs to go to v1
         queue.add(v1_box);
 
@@ -157,12 +175,10 @@ class Graph {
             }
         }
 
-        // Check if we can access our goal from our box
-        if (!visited.contains(v1)) {
-            return true;
-        }
+        var temp = visited.contains(v1);
 
-        return false;
+        // Check if we can access our goal from our box
+        return !visited.contains(v1);
     }
 
     public boolean isOnPath(Vertex v1, Vertex v2) {
