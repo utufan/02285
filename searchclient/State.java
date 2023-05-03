@@ -50,14 +50,14 @@ public class State
 
     private int hash = 0;
 
-    public static int[][] intMap;
-    public static double[][] distMap;
+//    public static int[][] intMap;
+//    public static double[][] distMap;
 
 
     // Constructs an initial state.
     // Arguments are not copied, and therefore should not be modified after being passed in.
     public State(int[] agentRows, int[] agentCols, Color[] agentColors, boolean[][] walls,
-                 char[][] boxes, Color[] boxColors, char[][] goals, int[][] intMap, double[][] distMap
+                 char[][] boxes, Color[] boxColors, char[][] goals
     )
     {
         this.agentRows = agentRows;
@@ -70,8 +70,8 @@ public class State
         this.parent = null;
         this.jointAction = null;
         this.g = 0;
-        this.intMap = intMap;
-        this.distMap = distMap;
+//        this.intMap = intMap;
+//        this.distMap = distMap;
     }
 
 

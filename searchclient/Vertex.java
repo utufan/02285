@@ -6,22 +6,9 @@ public class Vertex implements Comparable<Vertex> {
 
     public int locRow;
     public int locCol;
-    public boolean isWall = false;
-    public boolean isFree = false;
-    public boolean isBox = false;
-    public boolean isAgent = false;
-    public boolean isGoal = false;
-    public Goal goal = null;
-    public Agent agent = null;
-    public Box box = null;
-    public Edge edgeN,
-            edgeNE,
-            edgeE,
-            edgeSE,
-            edgeS,
-            edgeSW,
-            edgeW,
-            edgeNW;
+    public Character goalChar = '\0';
+    public Character boxChar = '\0';
+
     Vertex(int x,int y) {
         this.locRow = x;
         this.locCol = y;
@@ -41,7 +28,8 @@ public class Vertex implements Comparable<Vertex> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(locRow, locCol);
+        // create a string based on the fields in this object
+        return Objects.hash(String.format("%d,%d", locRow, locCol));
     }
 
 //    @Override

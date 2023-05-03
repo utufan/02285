@@ -156,7 +156,7 @@ public abstract class Heuristic
                 if (goal == box) {
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
-                    int distance = (int) SearchClient.getDistance(State.intMap, State.distMap, goalRow, goalCol, boxRow, boxCol);
+                    int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
 
 //                    if (goalRow == boxRow && goalCol == boxCol) {
 //                        System.err.println("Goal: " + goal + " is already at the goal");
