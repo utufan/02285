@@ -65,6 +65,9 @@ public class SearchClient
         int[] agentCols = new int[10];
         boolean[][] walls = new boolean[numRows][numCols];
         char[][] boxes = new char[numRows][numCols];
+        // Here is where we need the initial map representation
+        var mapRep = Utils.initialMapRepresentation(levelLines);
+
         for (int row = 0; row < numRows; ++row)
         {
             line = levelLines.get(row);
@@ -80,6 +83,7 @@ public class SearchClient
                 }
                 else if ('A' <= c && c <= 'Z')
                 {
+                    mapRep.getVertex(row, col).boxChar = c;
                     boxes[row][col] = c;
                 }
                 else if (c == '+')
@@ -89,8 +93,7 @@ public class SearchClient
             }
         }
 
-        // Here is where we need the initial map representation
-        var mapRep = Utils.initialMapRepresentation(levelLines);
+
 
         agentRows = Arrays.copyOf(agentRows, numAgents);
         agentCols = Arrays.copyOf(agentCols, numAgents);
@@ -110,7 +113,7 @@ public class SearchClient
                 {
                     goals[row][col] = c;
                     // now we need to update the graph representation of the map
-                    mapRep.getVertex(row, col).isGoal = true;
+                    mapRep.getVertex(row, col).goalChar = c;
                 }
             }
 

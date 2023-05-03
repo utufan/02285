@@ -6,7 +6,8 @@ public class Vertex implements Comparable<Vertex> {
 
     public int locRow;
     public int locCol;
-    public boolean isGoal = false;
+    public Character goalChar = '\0';
+    public Character boxChar = '\0';
 
     Vertex(int x,int y) {
         this.locRow = x;

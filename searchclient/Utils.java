@@ -29,6 +29,7 @@ public class Utils {
                 } else {
                     graph.addVertex(i, j);
 
+
                     intMap2[i][j] = i * numCols + j; // empty cell
 //                    rowRepresentation.add(cell);
                 }

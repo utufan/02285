@@ -64,18 +64,22 @@ class Graph {
 
     public List<Vertex> determine_goal_ordering(Map<Vertex, List<Vertex>> adjVertices) {
         // Identify all goal vertices
-        List<Vertex> goals = new ArrayList<>();
+        Map<Character, Vertex> goalMap = new LinkedHashMap<>();
+        Map<Character, Vertex> boxMap = new LinkedHashMap<>();
         for (Vertex v : adjVertices.keySet()) {
-            if (v.isGoal) {
-                goals.add(v);
+            if (v.goalChar != '\0') {
+                goalMap.put(v.goalChar, v);
+            }
+            else if (v.boxChar != '\0') {
+                boxMap.put(v.boxChar, v);
             }
         }
 
         // Build goal dependency graph
         Map<Vertex, List<Vertex>> goalDependencies = new LinkedHashMap<>();
-        for (Vertex goal1 : goals) {
-            for (Vertex goal2 : goals) {
-                if (goal1 != goal2 && pathBlocked(goal1, goal2, goals)) {
+        for (Vertex goal1 : goalMap.values()) {
+            for (Vertex goal2 : goalMap.values()) {
+                if (goal1 != goal2 && pathBlocked(goal1, goal2, goalMap, boxMap)) {
                     goalDependencies.computeIfAbsent(goal1, k -> new ArrayList<>()).add(goal2);
                 }
             }
@@ -87,7 +91,7 @@ class Graph {
         return orderedGoals;
     }
 
-    public boolean pathBlocked(Vertex goal1, Vertex goal2, List<Vertex> goals) {
+    public boolean pathBlocked(Vertex goal1, Vertex goal2, Map<Character, Vertex> goalMap, Map<Character, Vertex> boxMap) {
 //        for (Vertex goal : goals) {
 ////            if (goal == goal1 || goal == goal2) {
 ////                continue;
@@ -97,7 +101,7 @@ class Graph {
 //                return true;
 //            }
 //        }
-        return isBlockingAccess(goal1, goal2, adjVertices);
+        return isBlockingAccess(goal1, goal2, goalMap, boxMap, adjVertices);
     }
 
     public List<Vertex> topologicalSort(Map<Vertex, List<Vertex>> graph) {
@@ -127,13 +131,16 @@ class Graph {
         stack.push(v);
     }
 
-    public boolean isBlockingAccess(Vertex v1, Vertex v2, Map<Vertex, List<Vertex>> adjVertices) {
+    public boolean isBlockingAccess(Vertex v1, Vertex v2, Map<Character, Vertex> goalMap, Map<Character, Vertex> boxMap, Map<Vertex, List<Vertex>> adjVertices) {
         Set<Vertex> visited = new HashSet<>();
         Queue<Vertex> queue = new LinkedList<>();
 
         visited.add(v1);
         visited.add(v2); // Treat v2 as a blocking element
-        queue.add(v1);
+
+        Vertex v1_box = boxMap.get(v1.boxChar);
+        //Should be the location of the box that needs to go to v1
+        queue.add(v1_box);
 
         // Perform a breadth-first search (BFS) from v1, ignoring v2 as a blocking element
         while (!queue.isEmpty()) {
@@ -150,11 +157,9 @@ class Graph {
             }
         }
 
-        // Check if there are any unvisited vertices (excluding v2) in the map, meaning v2 is blocking access
-        for (Vertex v : adjVertices.keySet()) {
-            if (!visited.contains(v) && !v.equals(v2) && v.isGoal) {
-                return true;
-            }
+        // Check if we can access our goal from our box
+        if (!visited.contains(v1)) {
+            return true;
         }
 
         return false;
