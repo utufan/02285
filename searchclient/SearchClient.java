@@ -77,6 +77,7 @@ public class SearchClient
 
                 if ('0' <= c && c <= '9')
                 {
+                    mapRep.getVertex(row, col).boxChar = c;
                     agentRows[c - '0'] = row;
                     agentCols[c - '0'] = col;
                     ++numAgents;

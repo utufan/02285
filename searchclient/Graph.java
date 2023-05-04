@@ -148,12 +148,6 @@ class Graph {
 
 //        visited.add(v1);
         visited.add(v2); // Treat v2 as a blocking element
-
-        // if it is an agent goal, we need to find the agent
-        if (boxMap.get(v1.goalChar) == null) {
-            // Should be the location of the agent
-            return false;
-        }
         Vertex v1_box = boxMap.get(v1.goalChar);
 
 
@@ -180,40 +174,4 @@ class Graph {
         // Check if we can access our goal from our box
         return !visited.contains(v1);
     }
-
-    public boolean isOnPath(Vertex v1, Vertex v2) {
-        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
-        for (Vertex v : adjVertices.get(v1)) {
-            int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
-            int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
-            if (v1_v2_distance == v1_v_distance + v_v2_distance) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-//    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
-//        int v1_v2_distance = Math.abs(v1.locRow - v2.locRow) + Math.abs(v1.locCol - v2.locCol);
-//        int v1_v_distance = Math.abs(v1.locRow - v.locRow) + Math.abs(v1.locCol - v.locCol);
-//        int v_v2_distance = Math.abs(v.locRow - v2.locRow) + Math.abs(v.locCol - v2.locCol);
-//
-//        return v1_v2_distance == v1_v_distance + v_v2_distance;
-//    }
-
-//    public boolean isOnPath(Vertex v1, Vertex v2, Vertex v) {
-//        // Check if 'v' lies on the vertical line segment between 'v1' and 'v2'
-//        if (v1.locRow == v2.locRow && v1.locRow == v.locRow) {
-//            return (Math.min(v1.locCol, v2.locCol) <= v.locCol && v.locCol <= Math.max(v1.locCol, v2.locCol));
-//        }
-//        // Check if 'v' lies on the horizontal line segment between 'v1' and 'v2'
-//        else if (v1.locCol == v2.locCol && v1.locCol == v.locCol) {
-//            return (Math.min(v1.locRow, v2.locRow) <= v.locRow && v.locRow <= Math.max(v1.locRow, v2.locRow));
-//        }
-//        return false;
-//    }
-
-
-
-
 }
