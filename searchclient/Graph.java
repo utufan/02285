@@ -62,6 +62,26 @@ class Graph {
         return adjVertices.get(new Vertex(x, y));
     }
 
+    public static void removeVertexIfNotInList(Map<Vertex, List<Vertex>> graph) {
+        Iterator<Vertex> vertexIterator = graph.keySet().iterator();
+
+        while (vertexIterator.hasNext()) {
+            Vertex currentVertex = vertexIterator.next();
+            boolean foundInLists = false;
+
+            for (List<Vertex> verticesList : graph.values()) {
+                if (verticesList.contains(currentVertex)) {
+                    foundInLists = true;
+                    break;
+                }
+            }
+
+            if (!foundInLists && graph.get(currentVertex).isEmpty()) {
+                vertexIterator.remove();
+            }
+        }
+    }
+
     public List<Vertex> determine_goal_ordering(Map<Vertex, List<Vertex>> adjVertices) {
         // Identify all goal vertices
         Map<Character, Vertex> goalMap = new LinkedHashMap<>();
@@ -89,6 +109,8 @@ class Graph {
                 }
             }
         }
+
+        removeVertexIfNotInList(goalDependencies);
 
         // Perform topological sort on goalDependencies
         List<Vertex> orderedGoals = topologicalSort(goalDependencies);
