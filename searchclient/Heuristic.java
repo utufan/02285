@@ -123,24 +123,25 @@ public abstract class Heuristic
                     int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
 
                     
-                    /*if (goalRow == boxRow && goalCol == boxCol) {
-                        System.err.println("Goal: " + goal + " is already at the goal");
-                    }*/
+                    if (!(goalRow == boxRow && goalCol == boxCol)) {
+                        // This is just to add an overhead for if the goal is not completed
+                        cost += 5;
+                    }
 
                     //System.err.println("distance goal: " + distance);
                     int priority = goalCharIndex(box, Utils.goalOrders);
                     double weight = (1. / (priority+1));
-                    System.err.println("Weight for " + goal + " : " + weight);
+//                    System.err.println("Weight for " + goal + " : " + weight);
 
                     cost += (distance*weight);
-                    System.err.println("Cost for " + goal + " : " + distance);
+//                    System.err.println("Cost for " + goal + " : " + distance);
                 }
                 //System.err.println(Utils.goalOrders);
                 
                 //System.err.println(index);
             }
         }
-        System.err.println("*************************************");
+//        System.err.println("*************************************");
          // hashmap to keep track of closest box
         /*Map<Color, Integer> agentBoxDistance = new HashMap<>();
         for (int row = 0; row < boxes.size(); row++) {
