@@ -110,6 +110,7 @@ public abstract class Heuristic
 
 
         int cost = 0;
+        int goalCount = 0;
         // Assuming all boxes have one goal we dont need a hashmap
         for (int row = 0; row < this.goalChars.size(); row++) {
             int goalRow = this.goalRows.get(row);
@@ -121,11 +122,13 @@ public abstract class Heuristic
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
                     int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
-
+//                    int distance = manhattanDistance(goalRow, goalCol, boxRow, boxCol);
+//                    distance += manhattanDistance(boxRow, boxCol, s.agentRow, s.agentCol);
                     
                     if (!(goalRow == boxRow && goalCol == boxCol)) {
                         // This is just to add an overhead for if the goal is not completed
-                        cost += 5;
+//                        cost += 5;
+                        goalCount++;
                     }
 
                     //System.err.println("distance goal: " + distance);
@@ -141,6 +144,8 @@ public abstract class Heuristic
                 //System.err.println(index);
             }
         }
+
+        cost += goalCount*10;
 //        System.err.println("*************************************");
          // hashmap to keep track of closest box
         /*Map<Color, Integer> agentBoxDistance = new HashMap<>();
