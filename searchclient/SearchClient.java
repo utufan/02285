@@ -124,6 +124,7 @@ public class SearchClient
 
         // save the goal map representation
         Utils.goalMapRepresentation = mapRep;
+        System.err.println("Goal Ordering: " + Utils.goalMapRepresentation.determine_goal_ordering(Utils.goalMapRepresentation.adjVertices));
 
         // End
         // line is currently "#end"

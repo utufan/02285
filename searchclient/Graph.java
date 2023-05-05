@@ -115,6 +115,8 @@ class Graph {
         // Perform topological sort on goalDependencies
         List<Vertex> orderedGoals = topologicalSort(goalDependencies);
 
+        Utils.goalOrders = orderedGoals;
+
         return orderedGoals;
     }
 

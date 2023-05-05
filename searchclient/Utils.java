@@ -9,6 +9,7 @@ public class Utils {
     public static Graph goalMapRepresentation;
     public static int[][] intMap;
     public static double[][] dist;
+    public static List<Vertex> goalOrders;
 
     public static Graph initialMapRepresentation(List<String> levelLines) {
         Graph graph = new Graph();

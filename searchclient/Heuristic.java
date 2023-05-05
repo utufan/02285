@@ -55,54 +55,6 @@ public abstract class Heuristic
         return totalDistance;
     }
 
-    public List<Character> determineGoalOrder(char[][] boxes, char[][] goals) {
-        List<Character> goalOrder = new ArrayList<>();
-
-        // Identify goals and their positions
-        Map<Character, int[]> goalPositions = new HashMap<>();
-        for (int i = 0; i < goals.length; i++) {
-            for (int j = 0; j < goals[0].length; j++) {
-                if (goals[i][j] != 0) {
-                    char goal = goals[i][j];
-                    int[] position = {i, j};
-                    goalPositions.put(goal, position);
-                    goalOrder.add(goal);
-                }
-            }
-        }
-
-        // Sort goals by position
-        Collections.sort(goalOrder, (c1, c2) -> {
-            int[] p1 = goalPositions.get(c1);
-            int[] p2 = goalPositions.get(c2);
-            if (p1[1] != p2[1]) {
-                return Integer.compare(p1[1], p2[1]);
-            }
-            return Integer.compare(p1[0], p2[0]);
-        });
-
-        // Reorder goals based on box positions
-        Set<Character> visitedGoals = new HashSet<>();
-        for (int i = 0; i < goalOrder.size(); i++) {
-            char goal = goalOrder.get(i);
-            if (!visitedGoals.contains(goal)) {
-                int[] goalPosition = goalPositions.get(goal);
-                Character box = getBoxAtPosition(goalPosition[0], goalPosition[1], boxes);
-                if (box != null) {
-                    visitedGoals.add(goal);
-                    visitedGoals.add(box);
-                    goalOrder.remove(Character.valueOf(goal));
-                    goalOrder.remove(box);
-                    int index = goalOrder.indexOf(box);
-                    goalOrder.add(index, box);
-                    goalOrder.add(index + 1, goal);
-                    i = -1;
-                }
-            }
-        }
-
-        return goalOrder;
-    }
 
     private Character getBoxAtPosition(int x, int y, char[][] boxes) {
         for (int i = 0; i < boxes.length; i++) {
@@ -115,11 +67,23 @@ public abstract class Heuristic
         return null;
     }
 
+    public static int goalCharIndex(char targetChar, List<Vertex> vertices){
+        for(int i = 0;i<vertices.size();i++){
+            if(vertices.get(i).goalChar == targetChar){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
     // Verify when this gets executed by the searchclient and you need to add the following for the command being
     // executed to tap into the execution of the code
     // -agentlib:jdwp=transport=dt_socket,server=y,address=*:8000,suspend=y
     public int h(State s)
     {
+        //GUYS THIS WORKED 5 MINS AGO WTF
+        //System.err.println(Utils.goalOrders);
         // Exercise 6.3:  Add Manhattan Distance for box goal 
 
         ArrayList<Integer> boxRows = new ArrayList<Integer>();
@@ -157,18 +121,60 @@ public abstract class Heuristic
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
                     int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
-
-//                    if (goalRow == boxRow && goalCol == boxCol) {
-//                        System.err.println("Goal: " + goal + " is already at the goal");
-//                    }
+                    System.err.println("Original cost for " + goal + " : " + distance);
+                    /*if (goalRow == boxRow && goalCol == boxCol) {
+                        System.err.println("Goal: " + goal + " is already at the goal");
+                    }*/
 
                     //System.err.println("distance goal: " + distance);
+                    int priority = goalCharIndex(box, Utils.goalOrders);
+                    // 0.1 is the scaling factor here, we can control the bias towards that.
+                    double priorityFactor = 1 + (0.3 * (Utils.goalOrders.size()-priority));
+                    distance /= priorityFactor;
+                    System.err.println("Biased cost for " + goal + " : " + distance);
+
                     cost += distance;
+                    
+                }
+                //System.err.println(Utils.goalOrders);
+                
+                //System.err.println(index);
+            }
+        }
+         // hashmap to keep track of closest box
+        /*Map<Color, Integer> agentBoxDistance = new HashMap<>();
+        for (int row = 0; row < boxes.size(); row++) {
+            Color boxColor = boxesColor.get(row);
+            int boxRow = boxRows.get(row);
+            int boxCol = boxCols.get(row);
+            for (int col = 0; col < s.agentRows.length; col++) {
+                Color agentColor = s.agentColors[col];
+                if(agentColor == boxColor) {
+                    int agentRow = s.agentRows[col];
+                    int agentCol = s.agentCols[col];
+                    int distance =(int) Utils.getDistance(Utils.intMap, Utils.dist, agentRow, agentCol, boxRow, boxCol);
+                    //int distance = manhattanDistance(agentRow, agentCol, boxRow, boxCol);
+                    if(agentBoxDistance.containsKey(agentColor)){
+                        Integer entry = agentBoxDistance.get(agentColor);
+                        if(entry > distance){
+                            agentBoxDistance.put(agentColor, distance);
+                        }
+                    }
+                    else{
+                        agentBoxDistance.put(agentColor, distance);
+                    }
+                    //System.err.println("agentRow: " + agentRow + "agentCol: " + agentCol + "boxRow: " + boxRow + "boxCol: " + boxCol);
+                    //System.err.println("distance box: " + distance);
                 }
             }
         }
-        // hashmap to keep track of closest box
-        Map<Color, Integer> agentBoxDistance = new HashMap<>();
+
+        // Iterating HashMap through for loop
+        for (Map.Entry<Color, Integer> set :
+             agentBoxDistance.entrySet()) {
+
+             cost += set.getValue();
+        }*/
 //        for (int row = 0; row < boxes.size(); row++) {
 //            Color boxColor = boxesColor.get(row);
 //            int boxRow = boxRows.get(row);
