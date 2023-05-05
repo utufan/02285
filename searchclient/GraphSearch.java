@@ -34,9 +34,6 @@ public class GraphSearch {
         System.err.println("Initial State: " + initialState);
         System.err.println("Goal Ordering: " + Utils.goalMapRepresentation.determine_goal_ordering(Utils.goalMapRepresentation.adjVertices));
 
-
-
-
         for (int i = 0; i < initialState.agentRows.length; i++) {
             // This is very backwards, but if we look at the Agent Rows/Cols length, that tells us how many agents
             // there are on the map
@@ -78,6 +75,79 @@ public class GraphSearch {
         // cannot complete an objective. It could either be the result of a blocking box, agent, or otherwise. I would
         // hope that all the levels given in the competition are truly solveable, but I just don't know. I would rather
         // fail hard, fail fast than to have the planner continue to try to execute.
+
+        // ############################################################################################################
+        List<Vertex> orderedGoals = Utils.goalMapRepresentation.determine_goal_ordering(Utils.goalMapRepresentation.adjVertices);
+
+        // hold the path of vertices for agents that include agent -> box -> goal
+        // WHAT THE HELL IS THIS LIST OF LIST OF LIST OF VERTICES
+        List<List<List<Vertex>>> agentsPaths = new ArrayList<>();
+
+        for (int i = 0; i < agents.size(); i++) {
+            agentsPaths.add(new ArrayList<>());
+        }
+
+        for (var goal : orderedGoals) {
+            for (var agent : agents) {
+                for (var box : boxes) {
+                    // this is going to assume there is only one box per goal on a map
+                    if (goal.goalChar == box.id.charAt(0) && agent.color == box.color) {
+                        // problem is that this path INCLUDES the vertices of the box and the goal, at least from initial move
+                        var pathToBox = Utils.findPath(Utils.intMap, Utils.dist, agent.row, agent.col, box.row, box.col);
+                        var pathToGoal = Utils.findPath(Utils.intMap, Utils.dist, box.row, box.col, goal.locRow, goal.locCol);
+                        if (pathToBox == null || pathToGoal == null) {
+                            System.err.println("Path to box or goal is null");
+                            break;
+                        }
+                        // before we can merge the two paths, we need to see if either is blocked
+                        boolean isAgentToBoxBlocked = Utils.initialMapRepresentation.pathBlocked(new Vertex(agent.row, agent.col), new Vertex(box.row, box.col), Graph.boxMap);
+
+                        if (isAgentToBoxBlocked) {
+                            System.err.println("Agent: " + agent.id + " is blocked from box: " + box.id);
+                        }
+
+                        // merge the two paths together
+                        pathToBox.addAll(pathToGoal);
+                        agentsPaths.get(Integer.parseInt(agent.id)).add(pathToBox);
+                    }
+                }
+                if (goal.goalChar == agent.id.charAt(0)) {
+                    // this is the case where the goal is an agent
+                    var pathToGoal = Utils.findPath(Utils.intMap, Utils.dist, agent.row, agent.col, goal.locRow, goal.locCol);
+                    if (pathToGoal == null) {
+                        System.err.println("Path to goal is null");
+                        break;
+                    }
+                    agentsPaths.get(Integer.parseInt(agent.id)).add(pathToGoal);
+                }
+            }
+
+        }
+
+        // Now we've got the ordered goals paths but only for goals that are boxes. We need to add the paths for the
+        // goals that are agents
+        System.err.println("Agents Paths: \n" + agentsPaths);
+
+        // From the paths, we attempt to determine a list of actions they can perform
+        List<List<List<Action>>> potentialActionListPerAgent = new ArrayList<>();
+
+        for (int i = 0; i < agents.size(); i++) {
+            potentialActionListPerAgent.add(new ArrayList<>());
+        }
+
+        for (var agent : agentsPaths) {
+            for (var path : agent) {
+                potentialActionListPerAgent.get(agentsPaths.indexOf(agent)).add(Utils.convertVertexListToActionList(path));
+            }
+        }
+
+        System.err.println("Potential Action List Per Agent: \n" + potentialActionListPerAgent);
+
+        // The problem now is that each potential action list is not optimal; it simply says "here are the moves you could
+        //  do, but I can't tell you anything more". How can we optimize the action taken?
+
+
+        // ############################################################################################################
 
         int iterations = 0;
         // we need a difference between the cost function and the heuristic function

@@ -6,6 +6,8 @@ class Graph {
     public Map<Vertex, List<Vertex>> adjVertices = new LinkedHashMap<>();
     public Map<String, Vertex> verticesMap = new LinkedHashMap<>();
 
+    public static Map<Character, Vertex> boxMap = new LinkedHashMap<>();
+
     public void addVertex(int x, int y) {
         String key = x + "," + y;
         Vertex v = verticesMap.get(key);
@@ -85,7 +87,7 @@ class Graph {
     public List<Vertex> determine_goal_ordering(Map<Vertex, List<Vertex>> adjVertices) {
         // Identify all goal vertices
         Map<Character, Vertex> goalMap = new LinkedHashMap<>();
-        Map<Character, Vertex> boxMap = new LinkedHashMap<>();
+//        Map<Character, Vertex> boxMap = new LinkedHashMap<>();
         for (Vertex v : adjVertices.keySet()) {
             if (v.goalChar != '\0') {
                 goalMap.put(v.goalChar, v);
@@ -104,7 +106,7 @@ class Graph {
 
         for (Vertex goal1 : goalMap.values()) {
             for (Vertex goal2 : goalMap.values()) {
-                if (goal1 != goal2 && pathBlocked(goal1, goal2, goalMap, boxMap)) {
+                if (goal1 != goal2 && pathBlocked(goal1, goal2, boxMap)) {
                     goalDependencies.computeIfAbsent(goal1, k -> new ArrayList<>()).add(goal2);
                 }
             }
@@ -118,8 +120,8 @@ class Graph {
         return orderedGoals;
     }
 
-    public boolean pathBlocked(Vertex goal1, Vertex goal2, Map<Character, Vertex> goalMap, Map<Character, Vertex> boxMap) {
-        return isBlockingAccess(goal1, goal2, goalMap, boxMap, adjVertices);
+    public boolean pathBlocked(Vertex goal1, Vertex goal2, Map<Character, Vertex> boxMap) {
+        return isBlockingAccess(goal1, goal2, boxMap, adjVertices);
     }
 
     private static void dfs(Map<Vertex, List<Vertex>> graph, Vertex vertex, Set<Vertex> visited, Stack<Vertex> stack) {
@@ -164,7 +166,7 @@ class Graph {
         stack.push(v);
     }
 
-    public boolean isBlockingAccess(Vertex v1, Vertex v2, Map<Character, Vertex> goalMap, Map<Character, Vertex> boxMap, Map<Vertex, List<Vertex>> adjVertices) {
+    public boolean isBlockingAccess(Vertex v1, Vertex v2, Map<Character, Vertex> boxMap, Map<Vertex, List<Vertex>> adjVertices) {
         Set<Vertex> visited = new HashSet<>();
         Queue<Vertex> queue = new LinkedList<>();
 

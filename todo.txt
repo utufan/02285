@@ -1,0 +1,9 @@
+- Corridor and Target Symmetry
+- CBS might be a viable option to this domain given the number of agents we are dealing with
+
+CBS
+- Each agent finds the path of nodes from their start position to a box identified as a priority move
+- Calculate the Box to the Goal for distance in terms of vertices
+- Check if the path to the box is blocked by an agent or box
+- If blocked, find the agent that can move the box and move it
+- Take the paths from the agent searches and find conflicts

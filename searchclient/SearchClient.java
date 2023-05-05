@@ -68,6 +68,9 @@ public class SearchClient
         // Here is where we need the initial map representation
         var mapRep = Utils.initialMapRepresentation(levelLines);
 
+        // set the initial map representation for reference
+        Utils.initialMapRepresentation = mapRep;
+
         for (int row = 0; row < numRows; ++row)
         {
             line = levelLines.get(row);
