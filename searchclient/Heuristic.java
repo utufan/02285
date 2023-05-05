@@ -121,7 +121,7 @@ public abstract class Heuristic
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
                     int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
-                    System.err.println("Original cost for " + goal + " : " + distance);
+//                    System.err.println("Original cost for " + goal + " : " + distance);
                     /*if (goalRow == boxRow && goalCol == boxCol) {
                         System.err.println("Goal: " + goal + " is already at the goal");
                     }*/
@@ -129,9 +129,9 @@ public abstract class Heuristic
                     //System.err.println("distance goal: " + distance);
                     int priority = goalCharIndex(box, Utils.goalOrders);
                     // 0.1 is the scaling factor here, we can control the bias towards that.
-                    double priorityFactor = 1 + (0.3 * (Utils.goalOrders.size()-priority));
-                    distance /= priorityFactor;
-                    System.err.println("Biased cost for " + goal + " : " + distance);
+                    double priorityFactor = 1 - (0.2 * (Utils.goalOrders.size()-priority));
+                    distance -= priorityFactor;
+//                    System.err.println("Biased cost for " + goal + " : " + distance);
 
                     cost += distance;
                     
@@ -262,8 +262,8 @@ class HeuristicWeightedAStar
     @Override
     public int f(State s)
     {
-        return s.g() + this.w * this.h(s);
-//        return s.g() < this.h(s) ? s.g() + this.w * h(s) : (s.g() + (2 * this.w - 1) * this.h(s)) / this.w;
+//        return s.g() + this.w * this.h(s);
+        return s.g() < this.h(s) ? s.g() + h(s) : (s.g() + (2 * this.w - 1) * this.h(s)) / this.w;
     }
 
     @Override
