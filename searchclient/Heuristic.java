@@ -121,26 +121,26 @@ public abstract class Heuristic
                     int boxRow = boxRows.get(col);
                     int boxCol = boxCols.get(col);
                     int distance = (int) Utils.getDistance(Utils.intMap, Utils.dist, goalRow, goalCol, boxRow, boxCol);
-//                    System.err.println("Original cost for " + goal + " : " + distance);
+
+                    
                     /*if (goalRow == boxRow && goalCol == boxCol) {
                         System.err.println("Goal: " + goal + " is already at the goal");
                     }*/
 
                     //System.err.println("distance goal: " + distance);
                     int priority = goalCharIndex(box, Utils.goalOrders);
-                    // 0.1 is the scaling factor here, we can control the bias towards that.
-                    double priorityFactor = 1 - (0.2 * (Utils.goalOrders.size()-priority));
-                    distance -= priorityFactor;
-//                    System.err.println("Biased cost for " + goal + " : " + distance);
+                    double weight = (1. / (priority+1));
+                    System.err.println("Weight for " + goal + " : " + weight);
 
-                    cost += distance;
-                    
+                    cost += (distance*weight);
+                    System.err.println("Cost for " + goal + " : " + distance);
                 }
                 //System.err.println(Utils.goalOrders);
                 
                 //System.err.println(index);
             }
         }
+        System.err.println("*************************************");
          // hashmap to keep track of closest box
         /*Map<Color, Integer> agentBoxDistance = new HashMap<>();
         for (int row = 0; row < boxes.size(); row++) {
