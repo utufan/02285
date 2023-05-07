@@ -7,6 +7,7 @@ import java.util.List;
 public class Utils {
 
     public static Graph goalMapRepresentation;
+    public static Graph initialMapRepresentation;
     public static int[][] intMap;
     public static double[][] dist;
     public static List<Vertex> goalOrders;

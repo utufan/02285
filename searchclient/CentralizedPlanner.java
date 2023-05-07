@@ -15,7 +15,8 @@ public class CentralizedPlanner {
     public CentralizedPlanner(Blackboard blackboard) {
         this.blackboard = blackboard;
         // assign the initial tasks to the agents
-        assignInitialTasks();
+        // TODO: The following function needs to be massively reworked
+//        assignInitialTasks();
     }
 
 //    public static List<Vertex> findPath(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {

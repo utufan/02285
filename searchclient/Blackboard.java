@@ -22,14 +22,14 @@ public class Blackboard {
     int[][] intMap;
     double[][] dist;
     // TODO: Use the new map representation with adjacent vertices
-    List<List<Vertex>> mapRepresentation;
+    Graph mapRepresentation;
 
     // TODO: Investigate how we want to handle vertices to move boxes/agents blocking others
     SortedSet<Vertex> reservedVertices = null;
     SortedSet<Vertex> unreservedVertices = new TreeSet<>();
 
     private Blackboard(List<Agent> agents, List<Box> boxes, List<Goal> goals,
-                       int width, int height, int[][] intMap, double[][] dist, List<List<Vertex>> mapRepresentation) {
+                       int width, int height, int[][] intMap, double[][] dist, Graph mapRepresentation) {
         this.agents = agents;
         this.boxes = boxes;
         this.goals = goals;
@@ -56,7 +56,7 @@ public class Blackboard {
     }
 
     public static void initialize(List<Agent> agents, List<Box> boxes, List<Goal> goals, int width, int height
-    ,int[][] intMap, double[][] dist, List<List<Vertex>> mapRepresentation){
+    ,int[][] intMap, double[][] dist, Graph mapRepresentation){
         if(!isInitialized){
             synchronized (Blackboard.class){
                 if (!isInitialized){
@@ -72,20 +72,24 @@ public class Blackboard {
         if (reservedVertices == null){
             reservedVertices = new TreeSet<>();
         }
-        for (var vertex : verticesToBeReserved) {
-            reservedVertices.add(vertex);
-        }
+        reservedVertices.addAll(verticesToBeReserved);
     }
 
     // TODO: make this dynamic as tasks are completed and newly assigned
     public synchronized void verticesNotReserved(){
-        for (var vertices : this.mapRepresentation) {
-            for (var vertex : vertices) {
-                if (!this.reservedVertices.contains(vertex)) {
-                    this.unreservedVertices.add(vertex);
-                }
+        for (var vertex : mapRepresentation.verticesMap.values()) {
+            if (!this.reservedVertices.contains(vertex)) {
+                this.unreservedVertices.add(vertex);
             }
         }
+
+//        for (var vertices : this.mapRepresentation) {
+//            for (var vertex : vertices) {
+//                if (!this.reservedVertices.contains(vertex)) {
+//                    this.unreservedVertices.add(vertex);
+//                }
+//            }
+//        }
 //        if (unreservedVertices == null){
 //            unreservedVertices = new TreeSet<>();
 //        }
@@ -97,7 +101,10 @@ public class Blackboard {
     public synchronized Vertex getVertex(int x, int y){
         // TODO : maybe it would be possible to implement a pointer reference system so that
         //  any changes made by an agent or the centralized planner are reflected to any Vertex used in the solution.
-        return mapRepresentation.get(x).get(y);
+
+        return mapRepresentation.getVertex(x,y);
+
+//        return mapRepresentation.get(x).get(y);
     }
 
     public static Blackboard getInstance() {

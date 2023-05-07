@@ -64,7 +64,7 @@ public class Preprocessing {
         return State.walls.length;
     }
 
-    public Blackboard initializeBlackboard(int[][] intMap, double[][] dist, List<List<Vertex>> mapRepresentation) {
+    public Blackboard initializeBlackboard(int[][] intMap, double[][] dist, Graph mapRepresentation) {
         Blackboard.initialize(findAgents(), findBoxes(), findGoals(), findWidth(), findHeight(), intMap, dist, mapRepresentation);
         return Blackboard.getInstance();
     }

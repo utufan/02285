@@ -67,6 +67,7 @@ public class SearchClient
         char[][] boxes = new char[numRows][numCols];
         // Here is where we need the initial map representation
         var mapRep = Utils.initialMapRepresentation(levelLines);
+        Utils.initialMapRepresentation = mapRep;
 
         for (int row = 0; row < numRows; ++row)
         {
