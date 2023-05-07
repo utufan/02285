@@ -119,7 +119,6 @@ public class State
                     this.boxes[this.agentRows[agent] + action.boxRowDelta][this.agentCols[agent] + action.boxColDelta] = box;
                     break;
 
-                // TODO: Implement Pull
                 case Pull:
                     box = this.boxes[this.agentRows[agent] - action.boxRowDelta][this.agentCols[agent] - action.boxColDelta];
                     this.boxes[this.agentRows[agent] - action.boxRowDelta][this.agentCols[agent] - action.boxColDelta] = 0;
@@ -164,8 +163,6 @@ public class State
 
         // Determine list of applicable actions for each individual agent.
         Action[][] applicableActions = new Action[numAgents][];
-        // TODO: The really stupid part about this, is that States will get generated that don't need to be so long as
-        // they are considered "valid". But I don't know of a good way to restrict generation of these otherwise. :thinking:
         for (int agent = 0; agent < numAgents; ++agent)
         {
             ArrayList<Action> agentActions = new ArrayList<>(Action.values().length);

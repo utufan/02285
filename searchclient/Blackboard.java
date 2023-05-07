@@ -44,14 +44,20 @@ public class Blackboard {
         int startVertex = intMap[startX][startY];
         int endVertex = intMap[endX][endY];
 
-        // TODO:
+        // Fixed TODO
         // This should be solved with using the adjacent vertices because we no longer put walls as -1; confirm that
         // intMap won't give us this just be sure. Otherwise, we need a check for -1 here.
+        // We investigated potential exceptions and we decided to throw en exception in case we missed a potential error (WALL -1)
 
-//        if (startVertex == -1 || endVertex == -1) {
-//            // This a hack because of the less than logic it feeds
-//            return Integer.MAX_VALUE;
-//        }
+        if(mapRepresentation.adjVertices.get(startVertex+","+endVertex) == null ){
+           //write an exception
+            try{
+                throw new Exception("It is wall");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         return dist[startVertex][endVertex];
     }
 
@@ -99,8 +105,6 @@ public class Blackboard {
     }
 
     public synchronized Vertex getVertex(int x, int y){
-        // TODO : maybe it would be possible to implement a pointer reference system so that
-        //  any changes made by an agent or the centralized planner are reflected to any Vertex used in the solution.
 
         return mapRepresentation.getVertex(x,y);
 

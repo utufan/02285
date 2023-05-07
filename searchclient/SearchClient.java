@@ -104,7 +104,7 @@ public class SearchClient
         wallEquivalents.addAll(BoxesWithoutMatchingAgents);
         var mapRep = Utils.initialMapRepresentation(levelLines, wallEquivalents);
         Utils.initialMapRepresentation = mapRep;
-
+        System.err.println("Initial map representation: "+mapRep);
         printDistancesFromCell(Utils.intMap, Utils.dist, 2,2);
 
         int[][] agents = new int[numRows][numCols];
@@ -236,8 +236,7 @@ public class SearchClient
         return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals);
     }
 
-    public static TypeOfAgentGoalsCondition classifyAgentConditionsForLevel
-            (List<Character> agentsWithoutGoals, List<Character> originalAgentsList ){
+    public static TypeOfAgentGoalsCondition classifyAgentConditionsForLevel(List<Character> agentsWithoutGoals, List<Character> originalAgentsList ){
         if(originalAgentsList.size() == agentsWithoutGoals.size()){
             return TypeOfAgentGoalsCondition.NoAgentGoals;
         }
@@ -249,9 +248,7 @@ public class SearchClient
     }
 
 
-    public static TypeOfBoxGoalCondition classifyBoxConditionsForLevel(Map<Character, Integer> goalsVSBoxes,
-                                                                       List<Character> boxesIDs,
-                                                                       Map<Character,Integer> goalsForBoxes)
+    public static TypeOfBoxGoalCondition classifyBoxConditionsForLevel(Map<Character, Integer> goalsVSBoxes,List<Character> boxesIDs,Map<Character,Integer> goalsForBoxes)
     {
         if (boxesIDs.isEmpty()){
             return TypeOfBoxGoalCondition.NoBoxes;

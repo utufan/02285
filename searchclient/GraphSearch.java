@@ -23,7 +23,7 @@ public class GraphSearch {
         //track of the exact total number of states generated!!
 
 
-        // TODO: This is where I think the preprocessing should be done because this is the initial state.
+        //  This is where I think the preprocessing should be done because this is the initial state.
         // If we have some concept of a Planner, this is where it should first start.
         // THIS IS ONLY FOR THE INITIAL STATE, THEY BECOME STALE IF NOT UPDATED IN THE SEARCH
         List<Agent> agents = new ArrayList<>();
@@ -78,7 +78,7 @@ public class GraphSearch {
 
         System.err.println("Goals: " + initialGoals);
 
-        // TODO: I can't help but keep coming back to thinking of a need to address a situation in which an agent
+        // I can't help but keep coming back to thinking of a need to address a situation in which an agent
         // cannot complete an objective. It could either be the result of a blocking box, agent, or otherwise. I would
         // hope that all the levels given in the competition are truly solveable, but I just don't know. I would rather
         // fail hard, fail fast than to have the planner continue to try to execute.
@@ -109,7 +109,7 @@ public class GraphSearch {
             expanded.add(currentNode);
 //                System.err.println(LocalDateTime.now() + ": Path" + Arrays.toString(currentNode.agentRows) + Arrays.toString(currentNode.agentCols));
 
-            // TODO: This is the really scary part of the code. If we attempt to have the planner reevaluate
+            //  This is the really scary part of the code. If we attempt to have the planner reevaluate
             // every step inside that for loop, it will be computationally inefficient.
             for (var child : currentNode.getExpandedStates()) {
                 // TODO: Remove me
