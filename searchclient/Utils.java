@@ -12,7 +12,7 @@ public class Utils {
     public static double[][] dist;
     public static List<Vertex> goalOrders;
 
-    public static Graph initialMapRepresentation(List<String> levelLines) {
+    public static Graph initialMapRepresentation(List<String> levelLines, List<Character> wallRepresentations) {
         Graph graph = new Graph();
         int numRows = levelLines.size();
         int numCols = levelLines.stream().mapToInt(String::length).max().orElse(0);
@@ -25,7 +25,7 @@ public class Utils {
             for (int j = 0; j < numCols; j++) {
                 // Here, we can find out if isWall, isAgent, isBox are true or false, but the others are needed by
                 // preprocessing
-                if (j >= lineLength || lineToRead.charAt(j) == '+') {
+                if (j >= lineLength || wallRepresentations.contains(lineToRead.charAt(j))) {
                     intMap2[i][j] = -1; // wall or obstacle
 //                    rowRepresentation.add(cell);
                 } else {
