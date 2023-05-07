@@ -1,6 +1,7 @@
 package searchclient;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -23,6 +24,7 @@ public class Blackboard {
     double[][] dist;
     // TODO: Use the new map representation with adjacent vertices
     Graph mapRepresentation;
+
 
     // TODO: Investigate how we want to handle vertices to move boxes/agents blocking others
     SortedSet<Vertex> reservedVertices = null;
@@ -133,5 +135,17 @@ public class Blackboard {
         }
 
         return result.toString();
+    }
+
+    // Just moves the agent
+    public synchronized void updateBlackboard(List<Agent> agents) {
+        for (Agent agent: agents) {
+            for (Agent agent1: this.agents) {
+                if (Objects.equals(agent1.id, agent.id)) {
+                    agent1.row = agent.row;
+                    agent1.col = agent.col;
+                }
+            }
+        }
     }
 }

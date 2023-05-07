@@ -1,6 +1,8 @@
 package searchclient;
 
 
+import java.util.List;
+
 // TODO make the centralized planner to force the agents to update the agentRow and agentCol
 public class Task implements Comparable<Task> {
     @Override
@@ -69,6 +71,7 @@ public class Task implements Comparable<Task> {
                 taskCol,
                 destinationRow,
                 destinationCol;
+    public List<Vertex> path;
 
     public Task(TaskType type, Priority priority, String agentId, String boxId, String goalId, int agentRow, int agentCol, int taskRow, int taskCol, int destinationRow, int destinationCol) {
         this.type = type;

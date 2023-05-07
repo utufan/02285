@@ -1,9 +1,6 @@
 package searchclient;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class GraphSearch {
 
@@ -39,6 +36,29 @@ public class GraphSearch {
         CentralizedPlanner planner = new CentralizedPlanner(preprocessing.initializeBlackboard(Utils.intMap, Utils.dist, Utils.initialMapRepresentation));
 
         System.err.println("Planner: " + planner);
+
+        // TODO: CLEAN UP THIS CODE
+        // Make actions a single list rather than a collection
+        HashMap<Character, List<List<Action>>> actionsForAgents = new HashMap<>();
+        for(var entry: planner.agentToTasks.entrySet()) {
+            actionsForAgents.putIfAbsent(entry.getKey().charAt(0), new ArrayList<>());
+            for (var task : entry.getValue()) {
+                var actions = PathToActionsTranslator.translatePath(task);
+                actionsForAgents.get(entry.getKey().charAt(0)).add(actions);
+            }
+        }
+
+        System.err.println("Actions for agents: " + actionsForAgents);
+
+        planner.execute(actionsForAgents);
+
+//        for (var tasks : planner.agentToTasks.values()) {
+//            for (var task : tasks) {
+//                actionsForAgents.add(PathToActionsTranslator.translatePath(task));
+//                System.err.println("Task: " + task);
+//                System.err.println("Actions: " + actions);
+//            }
+//        }
 
 
         for (int i = 0; i < initialState.agentRows.length; i++) {

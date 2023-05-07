@@ -24,6 +24,7 @@ public class Preprocessing {
         return agents;
     }
 
+    // TODO: Find boxes is looking at the initial state, sync with the preprocessing
     public List<Box> findBoxes() {
         List<Box> boxes = new ArrayList<>();
 

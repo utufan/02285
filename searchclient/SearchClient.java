@@ -33,7 +33,8 @@ public class SearchClient
 
 
 
-        List<Character> BoxesWithoutMatchingAgents = new ArrayList<>();
+//        List<Character> boxesWithoutMatchingAgents = new ArrayList<>();
+        Utils.boxesNotForGoals = new ArrayList<>();
 
         // Read Level name
         serverMessages.readLine(); // #levelname
@@ -71,7 +72,7 @@ public class SearchClient
                     boxColors[c - 'A'] = color;
 
                     if (!AgentsByColor.containsKey(color)){
-                        BoxesWithoutMatchingAgents.add(c);
+                        Utils.boxesNotForGoals.add(c);
                     }
                 }
             }
@@ -101,7 +102,7 @@ public class SearchClient
 
         List<Character> wallEquivalents = new ArrayList<>();
         wallEquivalents.add('+');
-        wallEquivalents.addAll(BoxesWithoutMatchingAgents);
+        wallEquivalents.addAll(Utils.boxesNotForGoals);
         var mapRep = Utils.initialMapRepresentation(levelLines, wallEquivalents);
         Utils.initialMapRepresentation = mapRep;
 
@@ -170,10 +171,10 @@ public class SearchClient
                         goals[row][col] = c;
                         mapRep.getVertex(row, col).goalChar = c;
                         if (('A' <= c && c <= 'Z')){
-                            if (goalsForBoxes.containsKey(c) && !BoxesWithoutMatchingAgents.contains(c)){
+                            if (goalsForBoxes.containsKey(c) && !Utils.boxesNotForGoals.contains(c)){
                                 int val = goalsForBoxes.get(c);
                                 goalsForBoxes.put(c, val+1);
-                            }else if (!BoxesWithoutMatchingAgents.contains(c)){
+                            }else if (!Utils.boxesNotForGoals.contains(c)){
                                 goalsForBoxes.put(c, 1);
                             }
                         }
@@ -197,26 +198,26 @@ public class SearchClient
                 agentsWithoutGoals.add(agent);
             }
         }
-
+        Utils.agentsWithoutGoals = agentsWithoutGoals;
 
         // Here we are comparing the number of original boxes by ID to the number of goals that we have available
         // in the final state. If there is a positive number it means that there are x number of boxes more than goals
         // for that respective ID.
-        Map<Character, Integer> goalsVersusActualBoxes = new HashMap<>();
+        Utils.goalsVSActualBoxes = new HashMap<>();
         for (var boxChar : NumberOfBoxesById.keySet()) {
-            if (goalsForBoxes.containsKey(boxChar) && !BoxesWithoutMatchingAgents.contains(boxChar)){
+            if (goalsForBoxes.containsKey(boxChar) && !Utils.boxesNotForGoals.contains(boxChar)){
                 var diff = NumberOfBoxesById.get(boxChar) - goalsForBoxes.get(boxChar);
-                goalsVersusActualBoxes.put(boxChar, diff);
-            }else if(!BoxesWithoutMatchingAgents.contains(boxChar)) {
-                goalsVersusActualBoxes.put(boxChar, NumberOfBoxesById.get(boxChar));
+                Utils.goalsVSActualBoxes.put(boxChar, diff);
+            }else if(!Utils.boxesNotForGoals.contains(boxChar)) {
+                Utils.goalsVSActualBoxes.put(boxChar, NumberOfBoxesById.get(boxChar));
             }
 
         }
 
         System.err.print("\n--------------------------Box and Agents counting-----------------------------\n");
-        System.err.print("Agents without goals: " + agentsWithoutGoals + "\n");
-        System.err.print("Boxes without Matching Agents: " + BoxesWithoutMatchingAgents + "\n");
-        System.err.print("Boxes without goals: " + goalsVersusActualBoxes + "\n");
+        System.err.print("Agents without goals: " + Utils.agentsWithoutGoals + "\n");
+        System.err.print("Boxes without Matching Agents: " + Utils.boxesNotForGoals + "\n");
+        System.err.print("Boxes without goals: " + Utils.goalsVSActualBoxes + "\n");
 
 
 
@@ -224,11 +225,11 @@ public class SearchClient
         // line is currently "#end"
 
 
-        var agentConditions = classifyAgentConditionsForLevel(agentsWithoutGoals, agentsIDs);
-        var boxesConditions = classifyBoxConditionsForLevel(goalsForBoxes, boxesIDs, goalsVersusActualBoxes);
+        Utils.typeOfAgentGoalsCondition = classifyAgentConditionsForLevel(agentsWithoutGoals, agentsIDs);
+        Utils.typeOfBoxGoalCondition = classifyBoxConditionsForLevel(goalsForBoxes, boxesIDs, Utils.goalsVSActualBoxes);
         System.err.print("\n--------------------------Box and Agents Conditions-----------------------------\n");
-        System.err.print("State of Boxes:" + boxesConditions +"\n");
-        System.err.print("State of agents:" + agentConditions +"\n");
+        System.err.print("State of Boxes:" + Utils.typeOfBoxGoalCondition +"\n");
+        System.err.print("State of agents:" + Utils.typeOfAgentGoalsCondition +"\n");
 
         // End
         // line is currently "#end"
@@ -249,9 +250,9 @@ public class SearchClient
     }
 
 
-    public static TypeOfBoxGoalCondition classifyBoxConditionsForLevel(Map<Character, Integer> goalsVSBoxes,
+    public static TypeOfBoxGoalCondition classifyBoxConditionsForLevel(Map<Character, Integer> goalsForBoxes,
                                                                        List<Character> boxesIDs,
-                                                                       Map<Character,Integer> goalsForBoxes)
+                                                                       Map<Character,Integer> goalsVSBoxes)
     {
         if (boxesIDs.isEmpty()){
             return TypeOfBoxGoalCondition.NoBoxes;
@@ -260,6 +261,7 @@ public class SearchClient
             return TypeOfBoxGoalCondition.NoBoxGoals;
         }
         boolean anyBoxIdWithMoreBoxesThanGoals = false;
+        System.err.println("goalsVSBoxes: " + goalsVSBoxes);
         for (var goalDiff: goalsVSBoxes.values()) {
             if (goalDiff > 0){
                 anyBoxIdWithMoreBoxesThanGoals = true;

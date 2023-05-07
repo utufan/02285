@@ -2,13 +2,13 @@ package searchclient;
 
 import java.util.*;
 
-public class CentralizedPlanner {
+public class CentralizedPlanner implements KnowledgeSource {
     // This class is going to be EXTREMELY fucking complex
     public Blackboard blackboard;
     // Potentially putting the logic of agents selecting between tasks delagating to the agents
     // based on new heuristic
     public HashMap<String, List<Task>> agentToTasks;
-    public HashMap<String, Box> boxesNotForGoals;
+//    public HashMap<String, Box> boxesNotForGoals;
     // Will tie into potential future work for "ideal" path
 
 
@@ -16,7 +16,7 @@ public class CentralizedPlanner {
         this.blackboard = blackboard;
         // assign the initial tasks to the agents
         // TODO: The following function needs to be massively reworked
-//        assignInitialTasks();
+        assignInitialTasks();
     }
 
 //    public static List<Vertex> findPath(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {
@@ -42,13 +42,18 @@ public class CentralizedPlanner {
         var lengthOfSolution = (int) Utils.getDistance(intMap, dist, startX, startY, endX, endY);
         var moves = new ArrayList<Vertex>();
         var currentVertex = blackboard.getVertex(startX, startY);
+        moves.add(currentVertex);
         System.err.print(currentVertex);
         for (var i = lengthOfSolution; i != 0; i--) {
             var nextLowestDistance = Integer.MAX_VALUE;
             Vertex nextVertex = null;
             for (var move : possibleMoves) {
+
                 // TODO: isInMap is going to change based on new way to represent the map
                 var possibleVertex = blackboard.getVertex(currentVertex.locRow + move.get(0), currentVertex.locCol + move.get(1));
+                if (possibleVertex == null) {
+                    continue;
+                }
                 if (isInMap(possibleVertex, numRows - 1, numCols - 1)) {
 //                    System.err.println("endX: " + endX + " endY: " + endY);
                     var newDistance = (int) Utils.getDistance(intMap, dist, possibleVertex.locRow, possibleVertex.locCol, endX, endY);
@@ -94,7 +99,9 @@ public class CentralizedPlanner {
     public void assignInitialTasks() {
         // TODO: This will throw a NullPointer if we forget to call it!!!
         this.agentToTasks = new HashMap<>();
-        this.boxesNotForGoals = new HashMap<>();
+//        this.boxesNotForGoals = new HashMap<>();
+
+
 
 
         var blackBoard = Blackboard.getInstance();
@@ -120,6 +127,7 @@ public class CentralizedPlanner {
                             }
                             var agentToBox = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, box.row, box.col);
                             var boxToGoal = findPath(blackboard.intMap, blackboard.dist, box.row, box.col, goal.row, goal.col);
+                            task.path = boxToGoal;
 
                             printDistancesFromCell(blackboard.intMap, blackboard.dist, agent.row, agent.col);
 
@@ -153,6 +161,7 @@ public class CentralizedPlanner {
                         // do a logic check on the Task assigned to see if, by chance, an agent is already starting on the goal
                         if (agent.row == goal.row && agent.col == goal.col) {
                             task.type = Task.TaskType.NONE;
+                            task.path = new ArrayList<>();
                         }
                         var temp = this.agentToTasks.get(agent.id);
                         if (temp == null) {
@@ -164,6 +173,10 @@ public class CentralizedPlanner {
                         }
                         var agentToDest = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, goal.row, goal.col);
                         printDistancesFromCell(blackboard.intMap, blackboard.dist, agent.row, agent.col);
+
+                        // As part of the path to actions
+                        task.path = agentToDest;
+
                         printPathOnMap(agentToDest, blackboard.intMap);
 
                         blackboard.reserveVertices(agentToDest);
@@ -180,19 +193,19 @@ public class CentralizedPlanner {
             }
         }
 
-        // find the boxes that are not for goals
-        for (var box : this.blackboard.boxes) {
-            boolean isForGoal = false;
-            for (var goal : this.blackboard.goals) {
-                if (Objects.equals(box.id, goal.id)) {
-                    isForGoal = true;
-                    break;
-                }
-            }
-            if (!isForGoal) {
-                this.boxesNotForGoals.put(box.id, box);
-            }
-        }
+//        // find the boxes that are not for goals
+//        for (var box : this.blackboard.boxes) {
+//            boolean isForGoal = false;
+//            for (var goal : this.blackboard.goals) {
+//                if (Objects.equals(box.id, goal.id)) {
+//                    isForGoal = true;
+//                    break;
+//                }
+//            }
+//            if (!isForGoal) {
+//                this.boxesNotForGoals.put(box.id, box);
+//            }
+//        }
 
         // find agents that cannot move on turn 1
         // TODO: This needs to be a helper function that is dynamic as the maps change
@@ -204,14 +217,15 @@ public class CentralizedPlanner {
 
         }
 
+        // TODO: Should we need to create tasks to move boxes turn 1, this needs fixed
         // Finds boxes on the reservedVertices that are not for goals and moves them out of the way
-        for (var box : boxesNotForGoals.keySet()) {
-            var boxVertex = new Vertex(boxesNotForGoals.get(box).row, boxesNotForGoals.get(box).col);
-            if (blackboard.reservedVertices.contains(boxVertex)) {
-                // find the agent that can move the box
-                findAgentMoveBox(boxesNotForGoals.get(box));
-            }
-        }
+//        for (var box : boxesNotForGoals.keySet()) {
+//            var boxVertex = new Vertex(boxesNotForGoals.get(box).row, boxesNotForGoals.get(box).col);
+//            if (blackboard.reservedVertices.contains(boxVertex)) {
+//                // find the agent that can move the box
+//                findAgentMoveBox(boxesNotForGoals.get(box));
+//            }
+//        }
 
         // TODO: I think this needs to be taken out to reflect clearer intent
 //        // ASSIGN TASKS TO AGENTS
@@ -269,10 +283,10 @@ public class CentralizedPlanner {
         }
         result.append("\n");
 
-        result.append("Boxes not for goals: ");
-        for (var box : boxesNotForGoals.keySet()) {
-            result.append(box).append(", ");
-        }
+//        result.append("Boxes not for goals: ");
+//        for (var box : boxesNotForGoals.keySet()) {
+//            result.append(box).append(", ");
+//        }
         return result.toString();
     }
 
@@ -425,4 +439,39 @@ public class CentralizedPlanner {
         }
     }
 
+
+    public Action[][] execute(HashMap<Character, List<List<Action>>> actionsForAgents) {
+        var blackboard = Blackboard.getInstance();
+
+        // this is a naive implementation
+        // You need to get the actions for each agent and execute them in order in the same time step
+        for (var entry : actionsForAgents.entrySet()) {
+            for (var task : entry.getValue()) {
+                if (task.size() == 0) {
+                    continue;
+                }
+                for (var action : task) {
+                    Agent agent = blackboard.agents.get(Character.digit(entry.getKey(), 16));
+                    agent.row += action.agentRowDelta;
+                    agent.col += action.agentColDelta;
+                    var temp = new ArrayList<Agent>();
+                    temp.add(agent);
+
+                    blackboard.updateBlackboard(temp);
+                }
+
+                Action[] actionArray = task.toArray(new Action[0]);
+                return new Action[][]{actionArray};
+
+            }
+
+        }
+        return null;
+    }
+
+    @Override
+    public void updateBlackboard() {
+        var blackboard = Blackboard.getInstance();
+
+    }
 }
