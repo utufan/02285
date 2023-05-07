@@ -14,7 +14,21 @@ public class Vertex implements Comparable<Vertex> {
         this.locCol = y;
     }
 
+    public int getLocRow() {
+        return locRow;
+    }
 
+    public void setLocRow(int locRow) {
+        this.locRow = locRow;
+    }
+
+    public int getLocCol() {
+        return locCol;
+    }
+
+    public void setLocCol(int locCol) {
+        this.locCol = locCol;
+    }
 
     @Override
     public boolean equals(Object o) {

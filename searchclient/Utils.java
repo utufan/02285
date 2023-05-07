@@ -180,4 +180,144 @@ public class Utils {
             System.err.println();
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    // ############################################################################################################
+    public static List<Vertex> findPath(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {
+        int numRows = intMap.length;
+        int numCols = intMap[0].length;
+        List<List<Integer>> possibleMoves = new ArrayList<>() {{
+            add(Arrays.asList(0, 1)); // move right
+            add(Arrays.asList(1, 0)); // move down
+            add(Arrays.asList(0, -1)); // move left
+            add(Arrays.asList(-1, 0)); // move up
+        }};
+        var lengthOfSolution = getDistance(intMap, dist, startX, startY, endX, endY);
+        var moves = new ArrayList<Vertex>();
+
+        // just to get the current vertrex from somewhere
+        var currentVertex = goalMapRepresentation.verticesMap.get(startX + "," + startY);
+        if (currentVertex == null) {
+            System.err.println("currentVertex is null");
+            return null;
+        }
+
+        for (var i = lengthOfSolution; i != 0; i--) {
+            var nextLowestDistance = Integer.MAX_VALUE;
+            Vertex nextVertex = null;
+            for (var move : possibleMoves) {
+                if (currentVertex == null) {
+                    continue;
+                }
+                // because the map doesn't include walls, if the vertex is a wall or otherwise "outside" of the map,
+                // it will throw a null pointer exception
+                var possibleVertex = goalMapRepresentation.getVertex(currentVertex.locRow + move.get(0), currentVertex.locCol + move.get(1));
+                if (possibleVertex == null) {
+                    continue;
+                }
+                if (isInMap(possibleVertex, numRows - 1, numCols - 1)) {
+//                    System.err.println("endX: " + endX + " endY: " + endY);
+                    var newDistance = getDistance(intMap, dist, possibleVertex.locRow, possibleVertex.locCol, endX, endY);
+                    if (newDistance <= nextLowestDistance) {
+                        nextLowestDistance = (int) newDistance;
+                        nextVertex = possibleVertex;
+                    }
+                }
+            }
+            moves.add(nextVertex);
+            currentVertex = nextVertex;
+        }
+//        System.err.println("-----------------------\nMoves: \n" + moves);
+        return moves;
+    }
+
+    public static boolean isInMap(Vertex vertex, int rows, int cols) {
+//        System.err.println("rows: " + rows + " cols: " + cols + " vertex: " + vertex);
+        return (vertex.locRow > 0 && vertex.locRow < rows) && (vertex.locCol > 0 && vertex.locCol < cols);
+    }
+
+
+    // This helper function is going to attempt to take a list of vertices and turn it into a list of moves
+    // The concern here is that the return is going to be a list of lists, because we don't have a way to really scope
+    // down what move should be done
+    public static List<Action> convertVertexListToActionList(List<Vertex> vertexList) {
+        var actionList = new ArrayList<Action>();
+//        var stepActionList = new ArrayList<List<Action>>();
+//
+//        for (var i = 0; i < vertexList.size(); i++) {
+//            stepActionList.add(new ArrayList<>());
+//        }
+
+        var previousVertex = vertexList.get(0);
+        for (var i = 0; i < vertexList.size() - 1; i++) {
+            var currentVertex = vertexList.get(i);
+            var rowDifference = currentVertex.locRow - previousVertex.locRow;
+            var colDifference = currentVertex.locCol - previousVertex.locCol;
+            // This is naive in sense that it takes away the agents' ability to corner push/pull, but I think it is okay
+            if (rowDifference == 0 && colDifference == 1) {
+//                stepActionList.get(i).add(Action.MoveE);
+//                stepActionList.get(i).add(Action.PushEE);
+//                stepActionList.get(i).add(Action.PullEE);
+                actionList.add(Action.MoveE);
+                actionList.add(Action.PushEE);
+                actionList.add(Action.PullEE);
+            } else if (rowDifference == 0 && colDifference == -1) {
+//                stepActionList.get(i).add(Action.MoveW);
+//                stepActionList.get(i).add(Action.PushWW);
+//                stepActionList.get(i).add(Action.PullWW);
+                actionList.add(Action.MoveW);
+                actionList.add(Action.PushWW);
+                actionList.add(Action.PullWW);
+            } else if (rowDifference == 1 && colDifference == 0) {
+//                stepActionList.get(i).add(Action.MoveS);
+//                stepActionList.get(i).add(Action.PushSS);
+//                stepActionList.get(i).add(Action.PullSS);
+                actionList.add(Action.MoveS);
+                actionList.add(Action.PushSS);
+                actionList.add(Action.PullSS);
+            } else if (rowDifference == -1 && colDifference == 0) {
+//                stepActionList.get(i).add(Action.MoveN);
+//                stepActionList.get(i).add(Action.PushNN);
+//                stepActionList.get(i).add(Action.PullNN);
+                actionList.add(Action.MoveN);
+                actionList.add(Action.PushNN);
+                actionList.add(Action.PullNN);
+            } else {
+                System.err.println("Something went wrong in convertVertexListToActionList");
+            }
+            previousVertex = currentVertex;
+        }
+        return actionList;
+    }
+
+    public List<List<Vertex>> conflictSolved(List<List<Vertex>> agentPaths){
+
+        List<List<Vertex>> newAgentPaths = new ArrayList<>();
+        Vertex emptyObject = new Vertex(-1, -1);
+        for (int i = 0; i < agentPaths.size(); i++) {
+            List<Vertex> currentList = agentPaths.get(i);
+            for (int j = 0; j < currentList.size(); j++) {
+                Vertex currentElement = currentList.get(j);
+                if(currentElement.getLocCol()!=-1 && currentElement.getLocRow()!=-1) {
+                    for (List<Vertex> otherList : agentPaths) {
+                        if (j < otherList.size()) {
+                            if (otherList == currentList) {
+                                continue;
+                            }
+                            if (otherList.get(j).equals(currentElement)) {
+                                currentList.add(j, emptyObject);
+                            }
+                        }
+                    }
+                }
+            }
+            newAgentPaths.add(currentList);
+        }
+        return newAgentPaths;
+
+    }
+
+    // ############################################################################################################
+>>>>>>> Stashed changes
 }
