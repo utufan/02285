@@ -3,6 +3,7 @@ package searchclient;
 import java.util.*;
 
 class Graph {
+    // This should go into the Blackboard as well
     public Map<Vertex, List<Vertex>> adjVertices = new LinkedHashMap<>();
     public Map<String, Vertex> verticesMap = new LinkedHashMap<>();
 

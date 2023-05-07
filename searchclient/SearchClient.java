@@ -10,6 +10,19 @@ import java.util.*;
 
 public class SearchClient
 {
+    public enum TypeOfAgentGoalsCondition {
+        MoreAgentsThanAgentGoals,  // Could be useful to identify for the CP when to put agents in NOOP states
+        EqualAgentsAndAgentGoals, // Agents = AgentsGoals
+        NoAgentGoals // Could be useful to identify for the CP when to put agents in NOOP states
+    }
+
+    public enum TypeOfBoxGoalCondition{
+        NoBoxGoals,  // There are boxes, but none of them have any goals
+        NoBoxes, // No boxes at all in the map
+        MoreBoxesThanBoxGoals,  // The CP might need to prioritize getting boxes out of the way in this situation
+        EqualNumberOfBoxesAndBoxGoals // Boxes = BoxesGoals
+    }
+
     public static State parseLevel(BufferedReader serverMessages)
             throws IOException
     {
@@ -17,6 +30,10 @@ public class SearchClient
         // Read domain
         serverMessages.readLine(); // #domain
         serverMessages.readLine(); // hospital
+
+
+
+        List<Character> BoxesWithoutMatchingAgents = new ArrayList<>();
 
         // Read Level name
         serverMessages.readLine(); // #levelname
@@ -26,6 +43,7 @@ public class SearchClient
         serverMessages.readLine(); // #colors
         Color[] agentColors = new Color[10];
         Color[] boxColors = new Color[26];
+        Map<Color, List<Character>> AgentsByColor = new HashMap<>();
         String line = serverMessages.readLine();
         while (!line.startsWith("#"))
         {
@@ -37,13 +55,27 @@ public class SearchClient
                 char c = entity.strip().charAt(0);
                 if ('0' <= c && c <= '9')
                 {
+                    if (AgentsByColor.containsKey(color)){
+                        var currentListOfAgents = AgentsByColor.get(color);
+                        currentListOfAgents.add(c);
+                        AgentsByColor.put(color, currentListOfAgents);
+                    }else {
+                        var newListOfAgents = new ArrayList<Character>();
+                        newListOfAgents.add(c);
+                        AgentsByColor.put(color, newListOfAgents);
+                    }
                     agentColors[c - '0'] = color;
                 }
                 else if ('A' <= c && c <= 'Z')
                 {
                     boxColors[c - 'A'] = color;
+
+                    if (!AgentsByColor.containsKey(color)){
+                        BoxesWithoutMatchingAgents.add(c);
+                    }
                 }
             }
+
             line = serverMessages.readLine();
         }
 
@@ -66,8 +98,19 @@ public class SearchClient
         boolean[][] walls = new boolean[numRows][numCols];
         char[][] boxes = new char[numRows][numCols];
         // Here is where we need the initial map representation
-        var mapRep = Utils.initialMapRepresentation(levelLines);
 
+        List<Character> wallEquivalents = new ArrayList<>();
+        wallEquivalents.add('+');
+        wallEquivalents.addAll(BoxesWithoutMatchingAgents);
+        var mapRep = Utils.initialMapRepresentation(levelLines, wallEquivalents);
+        Utils.initialMapRepresentation = mapRep;
+
+        printDistancesFromCell(Utils.intMap, Utils.dist, 2,2);
+
+        int[][] agents = new int[numRows][numCols];
+        List<Character> boxesIDs = new ArrayList<>();
+        List<Character> agentsIDs = new ArrayList<>();
+        Map<Character, Integer> NumberOfBoxesById = new HashMap<>();
         for (int row = 0; row < numRows; ++row)
         {
             line = levelLines.get(row);
@@ -77,15 +120,23 @@ public class SearchClient
 
                 if ('0' <= c && c <= '9')
                 {
-                    mapRep.getVertex(row, col).boxChar = c;
+                    agentsIDs.add(c);
+                    agents[row][col] = c;
                     agentRows[c - '0'] = row;
                     agentCols[c - '0'] = col;
                     ++numAgents;
+
                 }
                 else if ('A' <= c && c <= 'Z')
                 {
-                    mapRep.getVertex(row, col).boxChar = c;
+                    boxesIDs.add(c);
                     boxes[row][col] = c;
+                    if (NumberOfBoxesById.containsKey(c)){
+                        int val = NumberOfBoxesById.get(c);
+                        NumberOfBoxesById.put(c, val+1);
+                    }else{
+                        NumberOfBoxesById.put(c, 1);
+                    }
                 }
                 else if (c == '+')
                 {
@@ -101,35 +152,144 @@ public class SearchClient
 
         // Read goal state
         // line is currently "#goal"
+
+        List<Character> goalsForAgents = new ArrayList<>();
+        Map<Character, Integer> goalsForBoxes = new HashMap<>();
         char[][] goals = new char[numRows][numCols];
         line = serverMessages.readLine();
         int row = 0;
         while (!line.startsWith("#"))
-        {
-            for (int col = 0; col < line.length(); ++col)
+            while (!line.startsWith("#"))
             {
-                char c = line.charAt(col);
-
-                if (('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))
+                for (int col = 0; col < line.length(); ++col)
                 {
-                    goals[row][col] = c;
-                    // now we need to update the graph representation of the map
-                    mapRep.getVertex(row, col).goalChar = c;
-                }
-            }
+                    char c = line.charAt(col);
 
-            ++row;
-            line = serverMessages.readLine();
-        }
+                    if (('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))
+                    {
+                        goals[row][col] = c;
+                        mapRep.getVertex(row, col).goalChar = c;
+                        if (('A' <= c && c <= 'Z')){
+                            if (goalsForBoxes.containsKey(c) && !BoxesWithoutMatchingAgents.contains(c)){
+                                int val = goalsForBoxes.get(c);
+                                goalsForBoxes.put(c, val+1);
+                            }else if (!BoxesWithoutMatchingAgents.contains(c)){
+                                goalsForBoxes.put(c, 1);
+                            }
+                        }
+                        if (('0' <= c && c <= '9')){
+                            goalsForAgents.add(c);
+                        }
+                    }
+                }
+
+                ++row;
+                line = serverMessages.readLine();
+            }
 
         // save the goal map representation
         Utils.goalMapRepresentation = mapRep;
         System.err.println("Goal Ordering: " + Utils.goalMapRepresentation.determine_goal_ordering(Utils.goalMapRepresentation.adjVertices));
 
+        List<Character> agentsWithoutGoals = new ArrayList<>();
+        for (var agent : agentsIDs) {
+            if (!goalsForAgents.contains(agent)){
+                agentsWithoutGoals.add(agent);
+            }
+        }
+
+
+        // Here we are comparing the number of original boxes by ID to the number of goals that we have available
+        // in the final state. If there is a positive number it means that there are x number of boxes more than goals
+        // for that respective ID.
+        Map<Character, Integer> goalsVersusActualBoxes = new HashMap<>();
+        for (var boxChar : NumberOfBoxesById.keySet()) {
+            if (goalsForBoxes.containsKey(boxChar) && !BoxesWithoutMatchingAgents.contains(boxChar)){
+                var diff = NumberOfBoxesById.get(boxChar) - goalsForBoxes.get(boxChar);
+                goalsVersusActualBoxes.put(boxChar, diff);
+            }else if(!BoxesWithoutMatchingAgents.contains(boxChar)) {
+                goalsVersusActualBoxes.put(boxChar, NumberOfBoxesById.get(boxChar));
+            }
+
+        }
+
+        System.err.print("\n--------------------------Box and Agents counting-----------------------------\n");
+        System.err.print("Agents without goals: " + agentsWithoutGoals + "\n");
+        System.err.print("Boxes without Matching Agents: " + BoxesWithoutMatchingAgents + "\n");
+        System.err.print("Boxes without goals: " + goalsVersusActualBoxes + "\n");
+
+
+
+        // End
+        // line is currently "#end"
+
+
+        var agentConditions = classifyAgentConditionsForLevel(agentsWithoutGoals, agentsIDs);
+        var boxesConditions = classifyBoxConditionsForLevel(goalsForBoxes, boxesIDs, goalsVersusActualBoxes);
+        System.err.print("\n--------------------------Box and Agents Conditions-----------------------------\n");
+        System.err.print("State of Boxes:" + boxesConditions +"\n");
+        System.err.print("State of agents:" + agentConditions +"\n");
+
         // End
         // line is currently "#end"
 
         return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals);
+    }
+
+    public static TypeOfAgentGoalsCondition classifyAgentConditionsForLevel
+            (List<Character> agentsWithoutGoals, List<Character> originalAgentsList ){
+        if(originalAgentsList.size() == agentsWithoutGoals.size()){
+            return TypeOfAgentGoalsCondition.NoAgentGoals;
+        }
+        if(agentsWithoutGoals.size()>0){
+            return TypeOfAgentGoalsCondition.MoreAgentsThanAgentGoals;
+        }
+        return TypeOfAgentGoalsCondition.EqualAgentsAndAgentGoals;
+
+    }
+
+
+    public static TypeOfBoxGoalCondition classifyBoxConditionsForLevel(Map<Character, Integer> goalsVSBoxes,
+                                                                       List<Character> boxesIDs,
+                                                                       Map<Character,Integer> goalsForBoxes)
+    {
+        if (boxesIDs.isEmpty()){
+            return TypeOfBoxGoalCondition.NoBoxes;
+        }
+        if (goalsForBoxes.isEmpty()){
+            return TypeOfBoxGoalCondition.NoBoxGoals;
+        }
+        boolean anyBoxIdWithMoreBoxesThanGoals = false;
+        for (var goalDiff: goalsVSBoxes.values()) {
+            if (goalDiff > 0){
+                anyBoxIdWithMoreBoxesThanGoals = true;
+            }
+        }
+        if (!anyBoxIdWithMoreBoxesThanGoals){
+            return TypeOfBoxGoalCondition.EqualNumberOfBoxesAndBoxGoals;
+        }
+        else{
+            return TypeOfBoxGoalCondition.MoreBoxesThanBoxGoals;
+        }
+
+    }
+
+    public static void printDistancesFromCell(int[][] intMap, double[][] dist, int startRow, int startCol) {
+        int numRows = intMap.length;
+        int numCols = intMap[0].length;
+
+        System.err.println("Distances from cell (" + startRow + "," + startCol + "):");
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                if (intMap[i][j] == -1) {
+                    System.err.printf("%4s", "####");
+                } else {
+                    double distance = dist[intMap[startRow][startCol]][intMap[i][j]];
+                    System.err.printf("%4.0f", distance);
+                }
+            }
+            System.err.println();
+        }
     }
 
 

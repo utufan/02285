@@ -34,7 +34,11 @@ public class GraphSearch {
         System.err.println("Initial State: " + initialState);
         System.err.println("Goal Ordering: " + Utils.goalMapRepresentation.determine_goal_ordering(Utils.goalMapRepresentation.adjVertices));
 
+        Preprocessing preprocessing = new Preprocessing(initialState);
 
+        CentralizedPlanner planner = new CentralizedPlanner(preprocessing.initializeBlackboard(Utils.intMap, Utils.dist, Utils.initialMapRepresentation));
+
+        System.err.println("Planner: " + planner);
 
 
         for (int i = 0; i < initialState.agentRows.length; i++) {
