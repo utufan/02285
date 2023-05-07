@@ -180,8 +180,6 @@ public class Utils {
             System.err.println();
         }
     }
-<<<<<<< Updated upstream
-=======
 
     // ############################################################################################################
     public static List<Vertex> findPath(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {
@@ -319,5 +317,4 @@ public class Utils {
     }
 
     // ############################################################################################################
->>>>>>> Stashed changes
 }
