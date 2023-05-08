@@ -1,5 +1,7 @@
 package searchclient;
 
+import org.apache.commons.lang3.tuple.Triple;
+
 import java.util.*;
 
 public class GraphSearch {
@@ -37,20 +39,9 @@ public class GraphSearch {
 
         System.err.println("Planner: " + planner);
 
-        // TODO: CLEAN UP THIS CODE
-        // Make actions a single list rather than a collection
-        HashMap<Character, List<List<Action>>> actionsForAgents = new HashMap<>();
-        for(var entry: planner.agentToTasks.entrySet()) {
-            actionsForAgents.putIfAbsent(entry.getKey().charAt(0), new ArrayList<>());
-            for (var task : entry.getValue()) {
-                var actions = PathToActionsTranslator.translatePath(task);
-                actionsForAgents.get(entry.getKey().charAt(0)).add(actions);
-            }
-        }
+//        System.err.println("Actions for agents: " + actionsForAgents);
 
-        System.err.println("Actions for agents: " + actionsForAgents);
-
-        var temp = planner.execute(actionsForAgents);
+        var temp = planner.execute();
 
         return temp;
 

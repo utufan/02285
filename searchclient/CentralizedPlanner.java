@@ -11,12 +11,32 @@ public class CentralizedPlanner implements KnowledgeSource {
 //    public HashMap<String, Box> boxesNotForGoals;
     // Will tie into potential future work for "ideal" path
 
+    public HashMap<Character, Task> agentToCurrentExecutingTask = new HashMap<>();
+
 
     public CentralizedPlanner(Blackboard blackboard) {
         this.blackboard = blackboard;
         // assign the initial tasks to the agents
         // TODO: The following function needs to be massively reworked
         assignInitialTasks();
+    }
+
+    public boolean isGoalRepresentation() {
+        var blackboard = Blackboard.getInstance();
+        int goalAchievedCount = 0;
+
+        for (Goal goal : blackboard.goals) {
+            var vertex = blackboard.getVertex(goal.row, goal.col);
+            if (vertex.cellChar == goal.id.charAt(0)) {
+                goalAchievedCount++;
+            }
+        }
+
+        if (goalAchievedCount == blackboard.goals.size()) {
+            return true;
+        }
+
+        return false;
     }
 
 //    public static List<Vertex> findPath(int[][] intMap, double[][] dist, int startX, int startY, int endX, int endY) {
@@ -440,7 +460,8 @@ public class CentralizedPlanner implements KnowledgeSource {
     }
 
 
-    public Action[][] execute(HashMap<Character, List<List<Action>>> actionsForAgents) {
+    public Action[][] execute() {
+        List<List<Action>> allActions = new ArrayList<>();
         // TODO:
         // Keep track of the actions for each agent per time step
         // Continue to plan until all tasks are completed and goal map representation is reached
@@ -454,40 +475,81 @@ public class CentralizedPlanner implements KnowledgeSource {
         // Need a way to resolve conflicts
         // Need a way to generate the god awful permutations of actions
 
+        // TODO: CLEAN UP THIS CODE
+        // Make actions a single list rather than a collection
+        HashMap<Character, List<Action>> actionsForAgents = new HashMap<>();
+        for(var agent: this.agentToTasks.entrySet()) {
+            // get the agent to update
+            Agent blackboardAgent = blackboard.agents.get(Character.digit(agent.getKey().charAt(0), 16));
+            actionsForAgents.putIfAbsent(agent.getKey().charAt(0), new ArrayList<>());
+            for (var task : agent.getValue()) {
+                var actions = PathToActionsTranslator.translatePath(task);
+                for (var action : actions) {
+                    actionsForAgents.get(agent.getKey().charAt(0)).add(action.getRight());
+                    // Update agent positioning based on row and the character on it
+                    blackboard.getVertex(blackboardAgent.row, blackboardAgent.col).cellChar = '\0';
+                    blackboardAgent.row += action.getRight().agentRowDelta;
+                    blackboardAgent.col += action.getRight().agentColDelta;
+                    var temp = new ArrayList<Agent>();
+                    temp.add(blackboardAgent);
+                    blackboard.updateBlackboard(temp);
+                }
+            }
+        }
 
-        var blackboard = Blackboard.getInstance();
-        var numAgents = blackboard.agents.size();
+        for (Action action : actionsForAgents.get('0')) {
+            allActions.add(new ArrayList<>(Collections.singletonList(action)));
+        }
 
-        List<List<Action>> actions = new ArrayList<>();
+        Action[][] act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+
+//        Action[][] act = actionsForAgents.get('0').stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+
+        return act;
+
+//        while (!isGoalRepresentation()) {
+//
+//            for (var agent : agentToCurrentExecutingTask.entrySet()) {
+//                if (agent.getValue().path.size() == 0) {
+//                    continue;
+//                }
+//            }
+//        }
+
+
+//        var blackboard = Blackboard.getInstance();
+//        var numAgents = blackboard.agents.size();
+//
+//        List<List<Action>> actions = new ArrayList<>();
 
         // this is a naive implementation
         // You need to get the actions for each agent and execute them in order in the same time step
-        for (var entry : actionsForAgents.entrySet()) {
-            for (var task : entry.getValue()) {
-                if (task.size() == 0) {
-                    continue;
-                }
-                for (var action : task) {
-                    Agent agent = blackboard.agents.get(Character.digit(entry.getKey(), 16));
-                    agent.row += action.agentRowDelta;
-                    agent.col += action.agentColDelta;
-                    // The scary part is now here
-                    var temp = new ArrayList<Agent>();
-                    temp.add(agent);
-
-                    blackboard.updateBlackboard(temp);
-                    Action[] actionArray = new Action[]{action};
-                    actions.add(Collections.singletonList(actionArray[0]));
-                }
-
-                Action[][] act = actions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
-
-                return act;
-
-            }
-
-        }
-        return null;
+//        for (var agent : actionsForAgents.entrySet()) {
+//            if (agent.getValue().size() == 0) {
+//                continue;
+//            }
+//            for (var action : agent.getValue()) {
+////                for (var action : action) {
+//                    Agent blackboardAgent = blackboard.agents.get(Character.digit(agent.getKey(), 16));
+//                    blackboardAgent.row += action.agentRowDelta;
+//                    blackboardAgent.col += action.agentColDelta;
+//                    // The scary part is now here
+//                    var temp = new ArrayList<Agent>();
+//                    temp.add(blackboardAgent);
+//
+//                    blackboard.updateBlackboard(temp);
+//                    Action[] actionArray = new Action[]{action};
+//                    actions.add(Collections.singletonList(actionArray[0]));
+////                }
+//
+//                Action[][] act = actions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+//
+//                return act;
+//
+//            }
+//
+//        }
+//        return null;
     }
 
     @Override
