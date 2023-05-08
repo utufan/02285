@@ -44,7 +44,7 @@ public class SearchClient
         serverMessages.readLine(); // #colors
         Color[] agentColors = new Color[10];
         Color[] boxColors = new Color[26];
-        Map<Color, List<Character>> AgentsByColor = new HashMap<>();
+        Map<Color, List<Character>> agentsByColor = new HashMap<>();
         String line = serverMessages.readLine();
         while (!line.startsWith("#"))
         {
@@ -56,14 +56,14 @@ public class SearchClient
                 char c = entity.strip().charAt(0);
                 if ('0' <= c && c <= '9')
                 {
-                    if (AgentsByColor.containsKey(color)){
-                        var currentListOfAgents = AgentsByColor.get(color);
+                    if (agentsByColor.containsKey(color)){
+                        var currentListOfAgents = agentsByColor.get(color);
                         currentListOfAgents.add(c);
-                        AgentsByColor.put(color, currentListOfAgents);
+                        agentsByColor.put(color, currentListOfAgents);
                     }else {
                         var newListOfAgents = new ArrayList<Character>();
                         newListOfAgents.add(c);
-                        AgentsByColor.put(color, newListOfAgents);
+                        agentsByColor.put(color, newListOfAgents);
                     }
                     agentColors[c - '0'] = color;
                 }
@@ -71,7 +71,7 @@ public class SearchClient
                 {
                     boxColors[c - 'A'] = color;
 
-                    if (!AgentsByColor.containsKey(color)){
+                    if (!agentsByColor.containsKey(color)){
                         Utils.boxesNotForGoals.add(c);
                     }
                 }

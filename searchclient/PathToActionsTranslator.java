@@ -21,6 +21,7 @@ public class PathToActionsTranslator {
     public static List<Triple<Vertex, Vertex, Action>> translatePath(Task task) {
         List<Triple<Vertex, Vertex, Action>> actions = new ArrayList<>();
         Triple<Vertex, Vertex, Action> move = null;
+        Blackboard blackboard = Blackboard.getInstance();
 
         switch (task.type) {
             case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
@@ -48,6 +49,46 @@ public class PathToActionsTranslator {
 //                break;
             // TODO: Maybe we want to split this into two moves: one to move the agent to the box, and one to move the box to the goal
             case MOVE_BOX_TO_GOAL:
+                // The problem here is that the agent needs to move to the box, agent -> task, and then from task->destination
+                for (int i = 0; i < task.path.size() - 1; i++) {
+                    Vertex current = task.path.get(i);
+                    Vertex next = task.path.get(i + 1);
+//                    Vertex boxVertex = blackboard.getVertex(task.taskRow, task.taskCol);
+                    Box box = blackboard.getBox(task.taskRow, task.taskCol);
+                    if (box == null) {
+                        throw new RuntimeException("Box is null");
+                    }
+                    if (next.locRow == task.taskRow && next.locCol == task.taskCol){
+                        if (current.locRow < next.locRow && box.row < next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PullNN));
+                        } else if (current.locRow > next.locRow && box.row > next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PullSS));
+                        } else if (current.locCol < next.locCol && box.col < next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PullEE));
+                        } else if (current.locCol > next.locCol && box.col > next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PullWW));
+                        } else if (current.locRow < next.locRow && box.row > next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PushNN));
+                        } else if (current.locRow > next.locRow && box.row < next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PushSS));
+                        } else if (current.locCol < next.locCol && box.col > next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PushEE));
+                        } else if (current.locCol > next.locCol && box.col < next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PushWW));
+                        }
+                    } else {
+                        if (current.locRow < next.locRow) {
+                            actions.add(Triple.of(current, next, Action.MoveS));
+                        } else if (current.locRow > next.locRow) {
+                            actions.add(Triple.of(current, next, Action.MoveN));
+                        } else if (current.locCol < next.locCol) {
+                            actions.add(Triple.of(current, next, Action.MoveE));
+                        } else if (current.locCol > next.locCol) {
+                            actions.add(Triple.of(current, next, Action.MoveW));
+                        }
+                    }
+
+                }
                 break;
             case NONE:
                 actions.add(Triple.of(new Vertex(task.agentRow, task.agentCol), new Vertex(task.agentRow, task.agentCol) , Action.NoOp));

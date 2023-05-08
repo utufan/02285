@@ -216,13 +216,14 @@ public class CentralizedPlanner implements KnowledgeSource {
             }
         }
 
-        for (Agent agent : blackboard.agents) {
-            for (var entry : agentToTasks.keySet()) {
-                if (!entry.contains(agent.id)) {
-                    agentToTasks.put(agent.id, new PriorityQueue<>());
-                }
-            }
-        }
+        // TODO: Something is fucked up with this, but I'm not sure what :thinking:
+//        for (Agent agent : blackboard.agents) {
+//            for (var entry : agentToTasks.keySet()) {
+//                if (!entry.contains(agent.id)) {
+//                    agentToTasks.put(agent.id, new PriorityQueue<>());
+//                }
+//            }
+//        }
 
 //        // find the boxes that are not for goals
 //        for (var box : this.blackboard.boxes) {

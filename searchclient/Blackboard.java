@@ -42,6 +42,15 @@ public class Blackboard {
         this.mapRepresentation = mapRepresentation;
     }
 
+    public Box getBox(int row, int col) {
+        for (var box : boxes) {
+            if (box.row == row && box.col == col) {
+                return box;
+            }
+        }
+        return null;
+    }
+
     public synchronized double getDistance(int startX, int startY, int endX, int endY) {
         int startVertex = intMap[startX][startY];
         int endVertex = intMap[endX][endY];
