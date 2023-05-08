@@ -441,7 +441,24 @@ public class CentralizedPlanner implements KnowledgeSource {
 
 
     public Action[][] execute(HashMap<Character, List<List<Action>>> actionsForAgents) {
+        // TODO:
+        // Keep track of the actions for each agent per time step
+        // Continue to plan until all tasks are completed and goal map representation is reached
+        // If we are not in the goal map representation, then we need to continue to plan, execute and resolve conflicts
+
+        // Need a way to check if the goal map representation is reached via Graph
+        // Need a way to check if all tasks are completed
+        // TODO: The following one is one of the more needed ones outside of the Conflict Resolution
+        // Need a way to generate and manage tasks
+        // Detect conflicts between agents' actions
+        // Need a way to resolve conflicts
+        // Need a way to generate the god awful permutations of actions
+
+
         var blackboard = Blackboard.getInstance();
+        var numAgents = blackboard.agents.size();
+
+        List<List<Action>> actions = new ArrayList<>();
 
         // this is a naive implementation
         // You need to get the actions for each agent and execute them in order in the same time step
@@ -454,14 +471,18 @@ public class CentralizedPlanner implements KnowledgeSource {
                     Agent agent = blackboard.agents.get(Character.digit(entry.getKey(), 16));
                     agent.row += action.agentRowDelta;
                     agent.col += action.agentColDelta;
+                    // The scary part is now here
                     var temp = new ArrayList<Agent>();
                     temp.add(agent);
 
                     blackboard.updateBlackboard(temp);
+                    Action[] actionArray = new Action[]{action};
+                    actions.add(Collections.singletonList(actionArray[0]));
                 }
 
-                Action[] actionArray = task.toArray(new Action[0]);
-                return new Action[][]{actionArray};
+                Action[][] act = actions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+
+                return act;
 
             }
 

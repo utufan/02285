@@ -42,7 +42,7 @@ public class Blackboard {
         this.mapRepresentation = mapRepresentation;
     }
 
-    public synchronized double getDistance( int startX, int startY, int endX, int endY) {
+    public synchronized double getDistance(int startX, int startY, int endX, int endY) {
         int startVertex = intMap[startX][startY];
         int endVertex = intMap[endX][endY];
 
@@ -58,11 +58,11 @@ public class Blackboard {
     }
 
     public static void initialize(List<Agent> agents, List<Box> boxes, List<Goal> goals, int width, int height
-    ,int[][] intMap, double[][] dist, Graph mapRepresentation){
-        if(!isInitialized){
-            synchronized (Blackboard.class){
-                if (!isInitialized){
-                    instance = new Blackboard(agents, boxes,goals,width,height, intMap,dist, mapRepresentation);
+            , int[][] intMap, double[][] dist, Graph mapRepresentation) {
+        if (!isInitialized) {
+            synchronized (Blackboard.class) {
+                if (!isInitialized) {
+                    instance = new Blackboard(agents, boxes, goals, width, height, intMap, dist, mapRepresentation);
                     isInitialized = true;
                 }
             }
@@ -70,15 +70,15 @@ public class Blackboard {
     }
 
     // TODO: make this dynamic as tasks are completed and newly assigned
-    public synchronized void reserveVertices(List<Vertex> verticesToBeReserved){
-        if (reservedVertices == null){
+    public synchronized void reserveVertices(List<Vertex> verticesToBeReserved) {
+        if (reservedVertices == null) {
             reservedVertices = new TreeSet<>();
         }
         reservedVertices.addAll(verticesToBeReserved);
     }
 
     // TODO: make this dynamic as tasks are completed and newly assigned
-    public synchronized void verticesNotReserved(){
+    public synchronized void verticesNotReserved() {
         for (var vertex : mapRepresentation.verticesMap.values()) {
             if (!this.reservedVertices.contains(vertex)) {
                 this.unreservedVertices.add(vertex);
@@ -100,11 +100,11 @@ public class Blackboard {
 //        }
     }
 
-    public synchronized Vertex getVertex(int x, int y){
+    public synchronized Vertex getVertex(int x, int y) {
         // TODO : maybe it would be possible to implement a pointer reference system so that
         //  any changes made by an agent or the centralized planner are reflected to any Vertex used in the solution.
 
-        return mapRepresentation.getVertex(x,y);
+        return mapRepresentation.getVertex(x, y);
 
 //        return mapRepresentation.get(x).get(y);
     }
@@ -115,6 +115,7 @@ public class Blackboard {
         }
         return instance;
     }
+
     public synchronized String toString() {
         StringBuilder result = new StringBuilder("Agents: ");
 
@@ -139,11 +140,11 @@ public class Blackboard {
 
     // Just moves the agent
     public synchronized void updateBlackboard(List<Agent> agents) {
-        for (Agent agent: agents) {
-            for (Agent agent1: this.agents) {
-                if (Objects.equals(agent1.id, agent.id)) {
-                    agent1.row = agent.row;
-                    agent1.col = agent.col;
+        for (Agent agentAfterAction : agents) {
+            for (Agent agentBeforeAction : this.agents) {
+                if (Objects.equals(agentBeforeAction.id, agentAfterAction.id)) {
+                    agentBeforeAction.row = agentAfterAction.row;
+                    agentBeforeAction.col = agentAfterAction.col;
                 }
             }
         }

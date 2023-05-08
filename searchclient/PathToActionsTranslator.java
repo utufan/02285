@@ -38,6 +38,7 @@ public class PathToActionsTranslator {
                 break;
 //            case MOVE_AGENT_OUT_OF_WAY:
 //                break;
+            // TODO: Maybe we want to split this into two moves: one to move the agent to the box, and one to move the box to the goal
             case MOVE_BOX_TO_GOAL:
                 break;
             case NONE:
