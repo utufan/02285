@@ -1,6 +1,8 @@
 package searchclient;
 
 
+import org.apache.commons.lang3.tuple.Triple;
+
 import java.util.List;
 
 // TODO make the centralized planner to force the agents to update the agentRow and agentCol
@@ -72,6 +74,7 @@ public class Task implements Comparable<Task> {
                 destinationRow,
                 destinationCol;
     public List<Vertex> path;
+    public List<Triple<Vertex, Vertex, Action>> actionsForPath;
 
     public Task(TaskType type, Priority priority, String agentId, String boxId, String goalId, int agentRow, int agentCol, int taskRow, int taskCol, int destinationRow, int destinationCol) {
         this.type = type;

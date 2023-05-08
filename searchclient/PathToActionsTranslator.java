@@ -50,6 +50,7 @@ public class PathToActionsTranslator {
             case MOVE_BOX_TO_GOAL:
                 break;
             case NONE:
+                actions.add(Triple.of(new Vertex(task.agentRow, task.agentCol), new Vertex(task.agentRow, task.agentCol) , Action.NoOp));
                 break;
         }
         return actions;

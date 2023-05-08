@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Agent {
     public List<Goal> goals;
+    public Task currentTask;
     public String id;
     public Color color;
     public int row,

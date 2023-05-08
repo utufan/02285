@@ -7,11 +7,16 @@ public class CentralizedPlanner implements KnowledgeSource {
     public Blackboard blackboard;
     // Potentially putting the logic of agents selecting between tasks delagating to the agents
     // based on new heuristic
-    public HashMap<String, List<Task>> agentToTasks;
+    public HashMap<String, PriorityQueue<Task>> agentToTasks;
 //    public HashMap<String, Box> boxesNotForGoals;
     // Will tie into potential future work for "ideal" path
 
-    public HashMap<Character, Task> agentToCurrentExecutingTask = new HashMap<>();
+//    public HashMap<Character, Task> agentToCurrentExecutingTask = new HashMap<>();
+
+    // This needs to be the time step to the actions agents take in it
+    public List<List<Action>> jointActions = new ArrayList<>();
+    // for the task queue management work
+//    HashMap<Character, PriorityQueue<Task>> agentQueues = new HashMap<>();
 
 
     public CentralizedPlanner(Blackboard blackboard) {
@@ -139,8 +144,7 @@ public class CentralizedPlanner implements KnowledgeSource {
                             Task task = new Task(Task.TaskType.MOVE_BOX_TO_GOAL, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
                             var temp = this.agentToTasks.get(agent.id);
                             if (temp == null) {
-                                this.agentToTasks.put(agent.id, new ArrayList<>() {
-                                });
+                                this.agentToTasks.put(agent.id, new PriorityQueue<>());
                                 this.agentToTasks.get(agent.id).add(task);
                             } else {
                                 this.agentToTasks.get(agent.id).add(task);
@@ -185,8 +189,7 @@ public class CentralizedPlanner implements KnowledgeSource {
                         }
                         var temp = this.agentToTasks.get(agent.id);
                         if (temp == null) {
-                            this.agentToTasks.put(agent.id, new ArrayList<>() {
-                            });
+                            this.agentToTasks.put(agent.id, new PriorityQueue<>());
                             this.agentToTasks.get(agent.id).add(task);
                         } else {
                             this.agentToTasks.get(agent.id).add(task);
@@ -209,6 +212,14 @@ public class CentralizedPlanner implements KnowledgeSource {
 //
 //                        printPath(agentToDest, blackboard.intMap);
                     }
+                }
+            }
+        }
+
+        for (Agent agent : blackboard.agents) {
+            for (var entry : agentToTasks.keySet()) {
+                if (!entry.contains(agent.id)) {
+                    agentToTasks.put(agent.id, new PriorityQueue<>());
                 }
             }
         }
@@ -278,7 +289,7 @@ public class CentralizedPlanner implements KnowledgeSource {
                 var temp = agentToTasks.get(agent.id);
                 if (temp == null) {
                     // check if the agent has this task already
-                    agentToTasks.put(agent.id, new ArrayList<>());
+                    agentToTasks.put(agent.id, new PriorityQueue<>());
                     agentToTasks.get(agent.id).add(task);
                 } else {
                     // check if the agent has this task already
@@ -475,37 +486,117 @@ public class CentralizedPlanner implements KnowledgeSource {
         // Need a way to resolve conflicts
         // Need a way to generate the god awful permutations of actions
 
-        // TODO: CLEAN UP THIS CODE
-        // Make actions a single list rather than a collection
-        HashMap<Character, List<Action>> actionsForAgents = new HashMap<>();
-        for(var agent: this.agentToTasks.entrySet()) {
-            // get the agent to update
-            Agent blackboardAgent = blackboard.agents.get(Character.digit(agent.getKey().charAt(0), 16));
-            actionsForAgents.putIfAbsent(agent.getKey().charAt(0), new ArrayList<>());
-            for (var task : agent.getValue()) {
-                var actions = PathToActionsTranslator.translatePath(task);
-                for (var action : actions) {
-                    actionsForAgents.get(agent.getKey().charAt(0)).add(action.getRight());
-                    // Update agent positioning based on row and the character on it
-                    blackboard.getVertex(blackboardAgent.row, blackboardAgent.col).cellChar = '\0';
-                    blackboardAgent.row += action.getRight().agentRowDelta;
-                    blackboardAgent.col += action.getRight().agentColDelta;
-                    var temp = new ArrayList<Agent>();
-                    temp.add(blackboardAgent);
-                    blackboard.updateBlackboard(temp);
+        if (!isGoalRepresentation()) {
+            System.err.println("Not in goal representation");
+        }
+
+        Action[][] act = null;
+
+        while (true) {
+            List<Action> agentTurnActions = new ArrayList<>();
+            // makes sure an agents queue is not empty for a timestep
+            for (String agentId : this.agentToTasks.keySet()) {
+                Agent agent = blackboard.agents.get(Character.digit(agentId.charAt(0), 16));
+                if (agentToTasks.get(agentId).isEmpty() && agent.currentTask == null)
+                {
+//                    Agent agent = blackboard.agents.get(Character.digit(agentId.charAt(0), 16));
+//                    agentToTasks.get(agentId).add(new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col));
+//                    agent.currentTask = agentToTasks.get(agentId).poll();
+                    agentTurnActions.add(Action.NoOp);
+                }
+                if (blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask == null) {
+                    var pendingTask = agentToTasks.get(agentId).poll();
+                    if (pendingTask == null) {
+//                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask = new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col);
+//                        agentToTasks.get(agentId).add(new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col));
+                        continue;
+                    } else {
+                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask = pendingTask;
+                        var actions = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
+
+                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.actionsForPath = actions;
+                    }
+                }
+                if (agent.currentTask != null && agent.currentTask.actionsForPath != null && !agent.currentTask.actionsForPath.isEmpty()) {
+                    Action currentTurnAction = agent.currentTask.actionsForPath.get(0).getRight();
+                    Vertex currentVertex = agent.currentTask.actionsForPath.get(0).getLeft();
+                    if (currentTurnAction != null && currentVertex != null) {
+                        // add the turn for this move
+                        agentTurnActions.add(currentTurnAction);
+                        // set old value to a null character
+                        blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
+                        // move agent on the blackboard
+                        agent.row += currentTurnAction.agentRowDelta;
+                        agent.col += currentTurnAction.agentColDelta;
+                        // set new value to the agent's id
+                        blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+
+                        // remove the action from the list for the agent
+                        agent.currentTask.actionsForPath.remove(0);
+//                        var temp = new ArrayList<Agent>();
+//                        temp.add(agent);
+
+//                        blackboard.updateBlackboard(temp);
+//                        agent.currentTask.actionsForPath = agent.currentTask.actionsForPath;
+                    }
+                } else {
+                    agent.currentTask = agentToTasks.get(agentId).poll();
                 }
             }
+
+//            for (var action : agentTurnActions) {
+//                allActions.add(new ArrayList<>(Collections.singletonList(action)));
+//            }
+
+            allActions.add(agentTurnActions);
+
+//            act = agentTurnActions.toArray(new Action[0][0]);
+//            act = agentTurnActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+
+            if (isGoalRepresentation()) {
+                act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+                return act;
+            }
+
+//            break;
+
         }
 
-        for (Action action : actionsForAgents.get('0')) {
-            allActions.add(new ArrayList<>(Collections.singletonList(action)));
-        }
-
-        Action[][] act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+        // TODO: CLEAN UP THIS CODE
+        // Make actions a single list rather than a collection
+//        HashMap<Character, List<Action>> actionsForAgents = new HashMap<>();
+//        for(var agent: this.agentToTasks.entrySet()) {
+//            // get the agent to update
+//            Agent blackboardAgent = blackboard.agents.get(Character.digit(agent.getKey().charAt(0), 16));
+//            actionsForAgents.putIfAbsent(agent.getKey().charAt(0), new ArrayList<>());
+//            for (var task : agent.getValue()) {
+//                var actions = PathToActionsTranslator.translatePath(task);
+//                for (var action : actions) {
+//                    actionsForAgents.get(agent.getKey().charAt(0)).add(action.getRight());
+//                    // Update agent positioning based on row and the character on it
+//                    blackboard.getVertex(blackboardAgent.row, blackboardAgent.col).cellChar = '\0';
+//                    blackboardAgent.row += action.getRight().agentRowDelta;
+//                    blackboardAgent.col += action.getRight().agentColDelta;
+//                    var temp = new ArrayList<Agent>();
+//                    temp.add(blackboardAgent);
+//                    blackboard.updateBlackboard(temp);
+//                }
+//            }
+//        }
+//
+//        for (Action action : actionsForAgents.get('0')) {
+//            allActions.add(new ArrayList<>(Collections.singletonList(action)));
+//        }
+//
+//        if (isGoalRepresentation()) {
+//            System.err.println("In goal representation");
+//        }
+//
+//        Action[][] act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
 
 //        Action[][] act = actionsForAgents.get('0').stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
 
-        return act;
+//        return act;
 
 //        while (!isGoalRepresentation()) {
 //

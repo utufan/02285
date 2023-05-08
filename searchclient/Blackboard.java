@@ -139,22 +139,22 @@ public class Blackboard {
     }
 
     // Just moves the agent
-    public synchronized void updateBlackboard(List<Agent> agents) {
-        // TODO: we need to include boxes in this update
-        // !!! We also need this to update the vertex information accordingly !!!
-        for (Agent agentAfterAction : agents) {
-            for (Agent agentBeforeAction : this.agents) {
-                if (Objects.equals(agentBeforeAction.id, agentAfterAction.id)) {
-                    getVertex(agentBeforeAction.row, agentBeforeAction.col).cellChar = null;
-//                    agentBeforeAction.row = agentAfterAction.row;
-//                    agentBeforeAction.col = agentAfterAction.col;
-                    // We need to update the vertex information here
-//                    Vertex vertexBefore = getVertex(agentBeforeAction.row, agentBeforeAction.col);
-//                    Vertex vertexAfter = getVertex(agentAfterAction.row, agentAfterAction.col);
-                    getVertex(agentAfterAction.row, agentAfterAction.col).cellChar = agentBeforeAction.id.charAt(0);
-//                    vertexAfter.cellChar = agentBeforeAction.id.charAt(0);
-                }
-            }
-        }
-    }
+//    public synchronized void updateBlackboard(List<Agent> agents) {
+//        // TODO: we need to include boxes in this update
+//        // !!! We also need this to update the vertex information accordingly !!!
+//        for (Agent agentAfterAction : agents) {
+//            for (Agent agentBeforeAction : this.agents) {
+//                if (Objects.equals(agentBeforeAction.id, agentAfterAction.id)) {
+//                    getVertex(agentBeforeAction.row, agentBeforeAction.col).cellChar = null;
+////                    agentBeforeAction.row = agentAfterAction.row;
+////                    agentBeforeAction.col = agentAfterAction.col;
+//                    // We need to update the vertex information here
+////                    Vertex vertexBefore = getVertex(agentBeforeAction.row, agentBeforeAction.col);
+////                    Vertex vertexAfter = getVertex(agentAfterAction.row, agentAfterAction.col);
+//                    getVertex(agentAfterAction.row, agentAfterAction.col).cellChar = agentBeforeAction.id.charAt(0);
+////                    vertexAfter.cellChar = agentBeforeAction.id.charAt(0);
+//                }
+//            }
+//        }
+//    }
 }
