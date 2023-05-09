@@ -22,7 +22,7 @@ public class GraphSearch {
         //track of the exact total number of states generated!!
 
 
-        // TODO: This is where I think the preprocessing should be done because this is the initial state.
+        //  This is where I think the preprocessing should be done because this is the initial state.
         // If we have some concept of a Planner, this is where it should first start.
         // THIS IS ONLY FOR THE INITIAL STATE, THEY BECOME STALE IF NOT UPDATED IN THE SEARCH
         List<Agent> agents = new ArrayList<>();

@@ -32,7 +32,7 @@ public abstract class Heuristic
 //        }
     }
 
-    // TODO Research: difference between edge and node representation
+    //  Research: difference between edge and node representation
 
     // Contraction hierarchies: https://en.wikipedia.org/wiki/Contraction_hierarchies
     // Unsuitable for real-time updates to the edges of the nodes for weights because the entire map would need to be regenerated

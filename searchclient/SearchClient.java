@@ -244,8 +244,7 @@ public class SearchClient
         return new State(agentRows, agentCols, agentColors, walls, boxes, boxColors, goals);
     }
 
-    public static TypeOfAgentGoalsCondition classifyAgentConditionsForLevel
-            (List<Character> agentsWithoutGoals, List<Character> originalAgentsList ){
+    public static TypeOfAgentGoalsCondition classifyAgentConditionsForLevel(List<Character> agentsWithoutGoals, List<Character> originalAgentsList ){
         if(originalAgentsList.size() == agentsWithoutGoals.size()){
             return TypeOfAgentGoalsCondition.NoAgentGoals;
         }
