@@ -8,12 +8,12 @@ public class Vertex implements Comparable<Vertex> {
     public int locCol;
     public Character goalChar = '\0';
     public Character boxChar = '\0';
+    public Character cellChar = '\0';
 
     Vertex(int x,int y) {
         this.locRow = x;
         this.locCol = y;
     }
-
 
 
     @Override

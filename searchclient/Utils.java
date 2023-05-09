@@ -3,6 +3,7 @@ package searchclient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
 
@@ -11,6 +12,11 @@ public class Utils {
     public static int[][] intMap;
     public static double[][] dist;
     public static List<Vertex> goalOrders;
+    public static List<Character> boxesNotForGoals;
+    public static SearchClient.TypeOfAgentGoalsCondition typeOfAgentGoalsCondition;
+    public static SearchClient.TypeOfBoxGoalCondition typeOfBoxGoalCondition;
+    public static Map<Character, Integer> goalsVSActualBoxes;
+    public static List<Character> agentsWithoutGoals;
 
     public static Graph initialMapRepresentation(List<String> levelLines, List<Character> wallRepresentations) {
         Graph graph = new Graph();

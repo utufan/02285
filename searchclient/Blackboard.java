@@ -1,6 +1,7 @@
 package searchclient;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -23,6 +24,8 @@ public class Blackboard {
     double[][] dist;
     // TODO: Use the new map representation with adjacent vertices
     Graph mapRepresentation;
+    Graph goalMapRepresentation;
+
 
     // TODO: Investigate how we want to handle vertices to move boxes/agents blocking others
     SortedSet<Vertex> reservedVertices = null;
@@ -40,7 +43,16 @@ public class Blackboard {
         this.mapRepresentation = mapRepresentation;
     }
 
-    public synchronized double getDistance( int startX, int startY, int endX, int endY) {
+    public Box getBox(int row, int col) {
+        for (var box : boxes) {
+            if (box.row == row && box.col == col) {
+                return box;
+            }
+        }
+        return null;
+    }
+
+    public synchronized double getDistance(int startX, int startY, int endX, int endY) {
         int startVertex = intMap[startX][startY];
         int endVertex = intMap[endX][endY];
 
@@ -62,11 +74,11 @@ public class Blackboard {
     }
 
     public static void initialize(List<Agent> agents, List<Box> boxes, List<Goal> goals, int width, int height
-    ,int[][] intMap, double[][] dist, Graph mapRepresentation){
-        if(!isInitialized){
-            synchronized (Blackboard.class){
-                if (!isInitialized){
-                    instance = new Blackboard(agents, boxes,goals,width,height, intMap,dist, mapRepresentation);
+            , int[][] intMap, double[][] dist, Graph mapRepresentation) {
+        if (!isInitialized) {
+            synchronized (Blackboard.class) {
+                if (!isInitialized) {
+                    instance = new Blackboard(agents, boxes, goals, width, height, intMap, dist, mapRepresentation);
                     isInitialized = true;
                 }
             }
@@ -74,15 +86,15 @@ public class Blackboard {
     }
 
     // TODO: make this dynamic as tasks are completed and newly assigned
-    public synchronized void reserveVertices(List<Vertex> verticesToBeReserved){
-        if (reservedVertices == null){
+    public synchronized void reserveVertices(List<Vertex> verticesToBeReserved) {
+        if (reservedVertices == null) {
             reservedVertices = new TreeSet<>();
         }
         reservedVertices.addAll(verticesToBeReserved);
     }
 
     // TODO: make this dynamic as tasks are completed and newly assigned
-    public synchronized void verticesNotReserved(){
+    public synchronized void verticesNotReserved() {
         for (var vertex : mapRepresentation.verticesMap.values()) {
             if (!this.reservedVertices.contains(vertex)) {
                 this.unreservedVertices.add(vertex);
@@ -106,7 +118,7 @@ public class Blackboard {
 
     public synchronized Vertex getVertex(int x, int y){
 
-        return mapRepresentation.getVertex(x,y);
+        return mapRepresentation.getVertex(x, y);
 
 //        return mapRepresentation.get(x).get(y);
     }
@@ -117,6 +129,7 @@ public class Blackboard {
         }
         return instance;
     }
+
     public synchronized String toString() {
         StringBuilder result = new StringBuilder("Agents: ");
 
@@ -138,4 +151,24 @@ public class Blackboard {
 
         return result.toString();
     }
+
+    // Just moves the agent
+//    public synchronized void updateBlackboard(List<Agent> agents) {
+//        // TODO: we need to include boxes in this update
+//        // !!! We also need this to update the vertex information accordingly !!!
+//        for (Agent agentAfterAction : agents) {
+//            for (Agent agentBeforeAction : this.agents) {
+//                if (Objects.equals(agentBeforeAction.id, agentAfterAction.id)) {
+//                    getVertex(agentBeforeAction.row, agentBeforeAction.col).cellChar = null;
+////                    agentBeforeAction.row = agentAfterAction.row;
+////                    agentBeforeAction.col = agentAfterAction.col;
+//                    // We need to update the vertex information here
+////                    Vertex vertexBefore = getVertex(agentBeforeAction.row, agentBeforeAction.col);
+////                    Vertex vertexAfter = getVertex(agentAfterAction.row, agentAfterAction.col);
+//                    getVertex(agentAfterAction.row, agentAfterAction.col).cellChar = agentBeforeAction.id.charAt(0);
+////                    vertexAfter.cellChar = agentBeforeAction.id.charAt(0);
+//                }
+//            }
+//        }
+//    }
 }

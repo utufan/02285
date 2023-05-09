@@ -8,7 +8,7 @@ public class Goal {
     //  I need to think about this more. If goal is static, i.e. the starting goals on the map, I think it should
     // have one value versus one that is the result of a change, or response to a "help" request. But I don't know if
     // this is the Goal's responsibility, or if it is another class's.
-    public int importanceValue;
+    public boolean isAchieved = false;
 
     //  I don't know how we want to handle goals that might either be agent locations or box locations
     // For now, I am just assuming box locations, which might also stand to reason that the goal should know about
