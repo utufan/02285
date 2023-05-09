@@ -1,5 +1,7 @@
 package searchclient;
 
+import jdk.jshell.execution.Util;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -104,7 +106,7 @@ public class SearchClient
         wallEquivalents.add('+');
         wallEquivalents.addAll(Utils.boxesNotForGoals);
         var mapRep = Utils.initialMapRepresentation(levelLines, wallEquivalents);
-        Utils.initialMapRepresentation = mapRep;
+        var initialMap = Utils.initialMapRepresentation(levelLines, wallEquivalents);
 
         printDistancesFromCell(Utils.intMap, Utils.dist, 2,2);
 
@@ -122,7 +124,9 @@ public class SearchClient
                 if ('0' <= c && c <= '9')
                 {
                     agentsIDs.add(c);
+                    initialMap.getVertex(row, col).cellChar = c;
                     agents[row][col] = c;
+
                     agentRows[c - '0'] = row;
                     agentCols[c - '0'] = col;
                     ++numAgents;
@@ -131,6 +135,7 @@ public class SearchClient
                 else if ('A' <= c && c <= 'Z')
                 {
                     boxesIDs.add(c);
+                    initialMap.getVertex(row, col).boxChar = c;
                     boxes[row][col] = c;
                     if (NumberOfBoxesById.containsKey(c)){
                         int val = NumberOfBoxesById.get(c);
@@ -146,6 +151,8 @@ public class SearchClient
             }
         }
 
+        // To get the boxes and agents on initial map
+        Utils.initialMapRepresentation = initialMap;
 
 
         agentRows = Arrays.copyOf(agentRows, numAgents);

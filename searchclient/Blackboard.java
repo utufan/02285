@@ -24,6 +24,7 @@ public class Blackboard {
     double[][] dist;
     // TODO: Use the new map representation with adjacent vertices
     Graph mapRepresentation;
+    Graph goalMapRepresentation;
 
 
     // TODO: Investigate how we want to handle vertices to move boxes/agents blocking others

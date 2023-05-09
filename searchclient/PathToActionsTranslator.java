@@ -54,23 +54,24 @@ public class PathToActionsTranslator {
                     Vertex current = task.path.get(i);
                     Vertex next = task.path.get(i + 1);
 //                    if (next.boxChar != task.boxId.charAt(0)) {
-                        if (current.locRow < next.locRow) {
-                            actions.add(Triple.of(current, next, Action.MoveS));
+                    if (current.locRow < next.locRow) {
+                        actions.add(Triple.of(current, next, Action.MoveS));
 //                        actions.add(Action.MoveS);
-                        } else if (current.locRow > next.locRow) {
-                            actions.add(Triple.of(current, next, Action.MoveN));
+                    } else if (current.locRow > next.locRow) {
+                        actions.add(Triple.of(current, next, Action.MoveN));
 //                        actions.add(Action.MoveN);
-                        } else if (current.locCol < next.locCol) {
-                            actions.add(Triple.of(current, next, Action.MoveE));
+                    } else if (current.locCol < next.locCol) {
+                        actions.add(Triple.of(current, next, Action.MoveE));
 //                        actions.add(Action.MoveE);
-                        } else if (current.locCol > next.locCol) {
-                            actions.add(Triple.of(current, next, Action.MoveW));
+                    } else if (current.locCol > next.locCol) {
+                        actions.add(Triple.of(current, next, Action.MoveW));
 //                        actions.add(Action.MoveW);
-                        }
+                    }
 //                    }
                 }
                 // we naively assume the next char is a box, and can't POSSIBLY be blocked by another agent or box
                 // NO WAY, THAT WOULD NEVER HAPPEN /s
+                // This is so it can stop before the box
                 actions = actions.subList(0, actions.size() - 1);
                 break;
             case MOVE_BOX_OUT_OF_WAY:
@@ -81,32 +82,51 @@ public class PathToActionsTranslator {
             case MOVE_BOX_TO_GOAL:
                 // we need a case to handle if the path size is one or not
                 // The problem here is that the agent needs to move to the box, agent -> task, and then from task->destination
-                for (int i = 0; i < task.path.size() - 1; i++) {
+                Box box = blackboard.getBox(task.taskRow, task.taskCol);
+                if (box == null) {
+                    throw new RuntimeException("Box is null");
+                }
+
+                for (int i = 0; i < task.path.size() - 2; i++) {
                     Vertex current = task.path.get(i);
                     Vertex next = task.path.get(i + 1);
 //                    Vertex boxVertex = blackboard.getVertex(task.taskRow, task.taskCol);
-                    Box box = blackboard.getBox(task.taskRow, task.taskCol);
-                    if (box == null) {
-                        throw new RuntimeException("Box is null");
-                    }
 //                    if (next.locRow == task.taskRow && next.locCol == task.taskCol){
-                        if (current.locRow < next.locRow && box.row < next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PullNN));
-                        } else if (current.locRow > next.locRow && box.row > next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PullSS));
-                        } else if (current.locCol < next.locCol && box.col < next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PullEE));
-                        } else if (current.locCol > next.locCol && box.col > next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PullWW));
-                        } else if (current.locRow < next.locRow && box.row > next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PushNN));
-                        } else if (current.locRow > next.locRow && box.row < next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PushSS));
-                        } else if (current.locCol < next.locCol && box.col > next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PushEE));
-                        } else if (current.locCol > next.locCol && box.col < next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PushWW));
-                        }
+                    // I am fairly certain this is the pain point
+                    // This is from the perspective of the agent
+
+                    // Donde esta el box?
+                    // Agent Move South
+                    if (current.locRow < next.locRow && current.locCol == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushSS));
+                    // Agent Move North
+                    } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushNN));
+                    // Agent Move East
+                    } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+                        actions.add(Triple.of(current, next, Action.PushEE));
+                    // Agent Move West
+                    } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+                        actions.add(Triple.of(current, next, Action.PushWW));
+                    }
+
+//                    if (current.locRow < next.locRow && box.row < next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.PullNN));
+//                    } else if (current.locRow > next.locRow && box.row > next.locRow) {
+//                        actions.add(Triple.of(current, next, Action.PullSS));
+//                    } else if (current.locCol < next.locCol && box.col < next.locCol) {
+//                        actions.add(Triple.of(current, next, Action.PullEE));
+//                    } else if (current.locCol > next.locCol && box.col > next.locCol) {
+//                        actions.add(Triple.of(current, next, Action.PullWW));
+//                    } else if (current.locRow < next.locRow && box.row > next.locRow) {
+//                        actions.add(Triple.of(current, next, Action.PushNN));
+//                    } else if (current.locRow > next.locRow && box.row < next.locRow) {
+//                        actions.add(Triple.of(current, next, Action.PushSS));
+//                    } else if (current.locCol < next.locCol && box.col > next.locCol) {
+//                        actions.add(Triple.of(current, next, Action.PushEE));
+//                    } else if (current.locCol > next.locCol && box.col < next.locCol) {
+//                        actions.add(Triple.of(current, next, Action.PushWW));
+//                    }
 //                    }
 //                    else {
 //                        if (current.locRow < next.locRow) {
@@ -122,7 +142,7 @@ public class PathToActionsTranslator {
                 }
                 break;
             case NONE:
-                actions.add(Triple.of(new Vertex(task.agentRow, task.agentCol), new Vertex(task.agentRow, task.agentCol) , Action.NoOp));
+                actions.add(Triple.of(new Vertex(task.agentRow, task.agentCol), new Vertex(task.agentRow, task.agentCol), Action.NoOp));
                 break;
         }
         return actions;
