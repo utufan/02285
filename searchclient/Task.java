@@ -48,6 +48,7 @@ public class Task implements Comparable<Task> {
 
     public enum TaskType {
         MOVE_BOX_TO_GOAL,
+        MOVE_AGENT_TO_BOX,
         MOVE_BOX_OUT_OF_WAY,
         MOVE_AGENT_OUT_OF_WAY,
         // indicates it has no task

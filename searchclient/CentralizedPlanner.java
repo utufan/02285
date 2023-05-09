@@ -32,7 +32,12 @@ public class CentralizedPlanner implements KnowledgeSource {
 
         for (Goal goal : blackboard.goals) {
             var vertex = blackboard.getVertex(goal.row, goal.col);
+            // only looks at agents at goal
             if (vertex.cellChar == goal.id.charAt(0)) {
+                goalAchievedCount++;
+            }
+            // only looks at boxes at goal
+            if (vertex.boxChar == goal.id.charAt(0)) {
                 goalAchievedCount++;
             }
         }
@@ -143,7 +148,9 @@ public class CentralizedPlanner implements KnowledgeSource {
                             // queue insertion time, but I am not sure. If the next task doesn't line up well, we're fucked
                             // get the adjacent vertices around the box
 
-                            Task moveTask = new Task(Task.TaskType.MOVE_TO_DESTINATION, Task.Priority.MEDIUM, agent.id, "", goal.id, agent.row, agent.col, box.row, box.col, box.row, box.col);
+
+                            // The idea here is that the new Task Type will tell you the Action calculations needed to be performed, but it does result in overhead
+                            Task moveTask = new Task(Task.TaskType.MOVE_AGENT_TO_BOX, Task.Priority.MEDIUM, agent.id, "", goal.id, agent.row, agent.col, box.row, box.col, box.row, box.col);
                             Task task = new Task(Task.TaskType.MOVE_BOX_TO_GOAL, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
                             var temp = this.agentToTasks.get(agent.id);
                             if (temp == null) {
@@ -512,17 +519,19 @@ public class CentralizedPlanner implements KnowledgeSource {
                     // Make sure the newly assigned task has a path
                     if (agent.currentTask != null) {
                         switch (agent.currentTask.type) {
-                            case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
+                            case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY, MOVE_AGENT_TO_BOX:
                                 agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
                                 break;
                             case MOVE_BOX_OUT_OF_WAY:
                                 break;
                             case MOVE_BOX_TO_GOAL:
-                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.currentTask.taskRow, agent.currentTask.taskCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
                                 break;
                             default:
                                 break;
                         }
+                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.agentRow = agent.row;
+                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.agentCol = agent.col;
                         blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
                     }
                 }
@@ -531,9 +540,10 @@ public class CentralizedPlanner implements KnowledgeSource {
                     Vertex currentVertex = agent.currentTask.actionsForPath.get(0).getLeft();
                     Vertex nextVertex = agent.currentTask.actionsForPath.get(0).getMiddle();
 
+                    // TODO: None of the actions are checked if they are actually allowed or not, this should cause conflicts if not
                     // I think this is where we, once again, have to do a switch statement based on the agent's current task
                     switch (agent.currentTask.type) {
-                        case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
+                        case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY, MOVE_AGENT_TO_BOX:
                             // add the turn for this move
                             agentTurnActions.add(currentTurnAction);
                             // set old value to a null character
@@ -565,7 +575,7 @@ public class CentralizedPlanner implements KnowledgeSource {
                             // set old value to a null character for the agent
                             blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
                             // set old value to a null character for the box
-                            blackboard.getVertex(box.row, box.col).cellChar = '\0';
+                            blackboard.getVertex(box.row, box.col).boxChar = '\0';
                             // move agent on the blackboard
                             agent.row += currentTurnAction.agentRowDelta;
                             agent.col += currentTurnAction.agentColDelta;
@@ -630,6 +640,20 @@ public class CentralizedPlanner implements KnowledgeSource {
                 if (agent.currentTask != null && agent.currentTask.actionsForPath != null && agent.currentTask.actionsForPath.isEmpty() && !agentToTasks.get(agentId).isEmpty())
                 {
                     agent.currentTask = agentToTasks.get(agentId).poll();
+                    switch (agent.currentTask.type) {
+                        case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY, MOVE_AGENT_TO_BOX:
+                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                            break;
+                        case MOVE_BOX_OUT_OF_WAY:
+                            break;
+                        case MOVE_BOX_TO_GOAL:
+                            // This should involve the agents location
+                            // TODO: WE'VE REALLY FUCKED THINGS UP WITH THIS
+                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                            break;
+                        default:
+                            break;
+                    }
                     System.err.println("Agent " + agentId + " has a new task " + agent.currentTask.type);
                 }
 
