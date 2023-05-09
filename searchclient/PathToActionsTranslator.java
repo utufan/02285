@@ -28,18 +28,24 @@ public class PathToActionsTranslator {
                 for (int i = 0; i < task.path.size() - 1; i++) {
                     Vertex current = task.path.get(i);
                     Vertex next = task.path.get(i + 1);
-                    if (current.locRow < next.locRow) {
-                        actions.add(Triple.of(current, next, Action.MoveS));
+                    if (next.cellChar == '\0') {
+
+                        if (current.locRow < next.locRow) {
+                            actions.add(Triple.of(current, next, Action.MoveS));
 //                        actions.add(Action.MoveS);
-                    } else if (current.locRow > next.locRow) {
-                        actions.add(Triple.of(current, next, Action.MoveN));
+                        } else if (current.locRow > next.locRow) {
+                            actions.add(Triple.of(current, next, Action.MoveN));
 //                        actions.add(Action.MoveN);
-                    } else if (current.locCol < next.locCol) {
-                        actions.add(Triple.of(current, next, Action.MoveE));
+                        } else if (current.locCol < next.locCol) {
+                            actions.add(Triple.of(current, next, Action.MoveE));
 //                        actions.add(Action.MoveE);
-                    } else if (current.locCol > next.locCol) {
-                        actions.add(Triple.of(current, next, Action.MoveW));
+                        } else if (current.locCol > next.locCol) {
+                            actions.add(Triple.of(current, next, Action.MoveW));
 //                        actions.add(Action.MoveW);
+                        }
+                    } else {
+                        // This is really fucking bad because why can't it move? WHO KNOWS
+                        actions.add(Triple.of(current, next, Action.NoOp));
                     }
                 }
                 break;
@@ -58,7 +64,7 @@ public class PathToActionsTranslator {
                     if (box == null) {
                         throw new RuntimeException("Box is null");
                     }
-                    if (next.locRow == task.taskRow && next.locCol == task.taskCol){
+//                    if (next.locRow == task.taskRow && next.locCol == task.taskCol){
                         if (current.locRow < next.locRow && box.row < next.locRow) {
                             actions.add(Triple.of(current, next, Action.PullNN));
                         } else if (current.locRow > next.locRow && box.row > next.locRow) {
@@ -76,18 +82,18 @@ public class PathToActionsTranslator {
                         } else if (current.locCol > next.locCol && box.col < next.locCol) {
                             actions.add(Triple.of(current, next, Action.PushWW));
                         }
-                    } else {
-                        if (current.locRow < next.locRow) {
-                            actions.add(Triple.of(current, next, Action.MoveS));
-                        } else if (current.locRow > next.locRow) {
-                            actions.add(Triple.of(current, next, Action.MoveN));
-                        } else if (current.locCol < next.locCol) {
-                            actions.add(Triple.of(current, next, Action.MoveE));
-                        } else if (current.locCol > next.locCol) {
-                            actions.add(Triple.of(current, next, Action.MoveW));
-                        }
-                    }
-
+//                    }
+//                    else {
+//                        if (current.locRow < next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.MoveS));
+//                        } else if (current.locRow > next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.MoveN));
+//                        } else if (current.locCol < next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.MoveE));
+//                        } else if (current.locCol > next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.MoveW));
+//                        }
+//                    }
                 }
                 break;
             case NONE:

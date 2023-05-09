@@ -110,7 +110,7 @@ public class CentralizedPlanner implements KnowledgeSource {
         Vertex minVertex = null;
         // from the blackboard unreserved vertices, find the nearest free cell to temp
         for (var vertex : blackboard.unreservedVertices) {
-            var distance = (int)blackboard.getDistance(temp.locRow, temp.locCol, vertex.locRow, vertex.locCol);
+            var distance = (int) blackboard.getDistance(temp.locRow, temp.locCol, vertex.locRow, vertex.locCol);
             if (distance < minDistance) {
                 minDistance = distance;
                 minVertex = vertex;
@@ -127,8 +127,6 @@ public class CentralizedPlanner implements KnowledgeSource {
 //        this.boxesNotForGoals = new HashMap<>();
 
 
-
-
         var blackBoard = Blackboard.getInstance();
 
         // for each goal find the box that needs to go there
@@ -141,12 +139,19 @@ public class CentralizedPlanner implements KnowledgeSource {
                 for (var box : blackboard.boxes) {
                     for (var agent : blackboard.agents) {
                         if (agent.color == box.color && Objects.equals(box.id, goal.id)) {
+                            // TODO: This is the scary part about the assignment. I think ordering is determined on
+                            // queue insertion time, but I am not sure. If the next task doesn't line up well, we're fucked
+                            // get the adjacent vertices around the box
+
+                            Task moveTask = new Task(Task.TaskType.MOVE_TO_DESTINATION, Task.Priority.MEDIUM, agent.id, "", goal.id, agent.row, agent.col, box.row, box.col, box.row, box.col);
                             Task task = new Task(Task.TaskType.MOVE_BOX_TO_GOAL, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
                             var temp = this.agentToTasks.get(agent.id);
                             if (temp == null) {
                                 this.agentToTasks.put(agent.id, new PriorityQueue<>());
+                                this.agentToTasks.get(agent.id).add(moveTask);
                                 this.agentToTasks.get(agent.id).add(task);
                             } else {
+                                this.agentToTasks.get(agent.id).add(moveTask);
                                 this.agentToTasks.get(agent.id).add(task);
                             }
                             var agentToBox = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, box.row, box.col);
@@ -216,14 +221,13 @@ public class CentralizedPlanner implements KnowledgeSource {
             }
         }
 
-        // TODO: Something is fucked up with this, but I'm not sure what :thinking:
-//        for (Agent agent : blackboard.agents) {
-//            for (var entry : agentToTasks.keySet()) {
-//                if (!entry.contains(agent.id)) {
-//                    agentToTasks.put(agent.id, new PriorityQueue<>());
-//                }
-//            }
-//        }
+        for (Agent agent : blackboard.agents) {
+            // Checks if the agents that don't have tasks assigned to them from initial start get a queue created for them
+            // This is extremely important for basic queue management
+            if (!agentToTasks.containsKey(agent.id)) {
+                agentToTasks.put(agent.id, new PriorityQueue<>());
+            }
+        }
 
 //        // find the boxes that are not for goals
 //        for (var box : this.blackboard.boxes) {
@@ -498,73 +502,139 @@ public class CentralizedPlanner implements KnowledgeSource {
             // makes sure an agents queue is not empty for a timestep
             for (String agentId : this.agentToTasks.keySet()) {
                 Agent agent = blackboard.agents.get(Character.digit(agentId.charAt(0), 16));
-                if (agentToTasks.get(agentId).isEmpty() && agent.currentTask == null)
-                {
-//                    Agent agent = blackboard.agents.get(Character.digit(agentId.charAt(0), 16));
-//                    agentToTasks.get(agentId).add(new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col));
-//                    agent.currentTask = agentToTasks.get(agentId).poll();
+                // If the queue is empty and the agent is not currently doing a task, then add a no op for the agent to the turn actions
+                if (agentToTasks.get(agentId).isEmpty() && agent.currentTask == null) {
                     agentTurnActions.add(Action.NoOp);
                 }
-                if (blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask == null) {
-                    var pendingTask = agentToTasks.get(agentId).poll();
-                    if (pendingTask == null) {
-//                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask = new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col);
-//                        agentToTasks.get(agentId).add(new Task(Task.TaskType.NONE, Task.Priority.LOW, agentId, null, null, agent.row, agent.col, agent.row, agent.col, agent.row, agent.col));
-                        continue;
-                    } else {
-                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask = pendingTask;
-                        var actions = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
-
-                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.actionsForPath = actions;
+                // If the agent has no task but has one available in the queue, then add the task to the agent's current task
+                else if (agent.currentTask == null && !agentToTasks.get(agentId).isEmpty()) {
+                    agent.currentTask = agentToTasks.get(agentId).poll();
+                    // Make sure the newly assigned task has a path
+                    if (agent.currentTask != null) {
+                        switch (agent.currentTask.type) {
+                            case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
+                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                                break;
+                            case MOVE_BOX_OUT_OF_WAY:
+                                break;
+                            case MOVE_BOX_TO_GOAL:
+                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.currentTask.taskRow, agent.currentTask.taskCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                                break;
+                            default:
+                                break;
+                        }
+                        blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
                     }
                 }
                 if (agent.currentTask != null && agent.currentTask.actionsForPath != null && !agent.currentTask.actionsForPath.isEmpty()) {
                     Action currentTurnAction = agent.currentTask.actionsForPath.get(0).getRight();
                     Vertex currentVertex = agent.currentTask.actionsForPath.get(0).getLeft();
-                    if (currentTurnAction != null && currentVertex != null) {
-                        // add the turn for this move
-                        agentTurnActions.add(currentTurnAction);
-                        // set old value to a null character
-                        blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
-                        // move agent on the blackboard
-                        agent.row += currentTurnAction.agentRowDelta;
-                        agent.col += currentTurnAction.agentColDelta;
-                        // set new value to the agent's id
-                        blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+                    Vertex nextVertex = agent.currentTask.actionsForPath.get(0).getMiddle();
 
-                        // remove the action from the list for the agent
-                        agent.currentTask.actionsForPath.remove(0);
-//                        var temp = new ArrayList<Agent>();
-//                        temp.add(agent);
+                    // I think this is where we, once again, have to do a switch statement based on the agent's current task
+                    switch (agent.currentTask.type) {
+                        case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
+                            // add the turn for this move
+                            agentTurnActions.add(currentTurnAction);
+                            // set old value to a null character
+                            blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
+                            // move agent on the blackboard
+                            agent.row += currentTurnAction.agentRowDelta;
+                            agent.col += currentTurnAction.agentColDelta;
+                            // set new value to the agent's id
+                            blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
 
-//                        blackboard.updateBlackboard(temp);
-//                        agent.currentTask.actionsForPath = agent.currentTask.actionsForPath;
+                            // remove the action from the list for the agent
+                            agent.currentTask.actionsForPath.remove(0);
+                            break;
+                        case MOVE_BOX_OUT_OF_WAY:
+                            break;
+                        case MOVE_BOX_TO_GOAL:
+                            // add the turn for this move
+                            agentTurnActions.add(currentTurnAction);
+                            // This is going to be a naive way to do this, but we need to get the box that is near the current agent
+                            List<Vertex> verticesAdjacentToAgent = blackboard.mapRepresentation.getAdjVertices(agent.row, agent.col);
+                            Vertex boxVertex = null;
+                            for (Vertex v : verticesAdjacentToAgent) {
+                                if (v.cellChar == agent.currentTask.boxId.charAt(0)) {
+                                    boxVertex = v;
+                                    break;
+                                }
+                            }
+                            Box box = blackboard.getBox(boxVertex.locRow, boxVertex.locCol);
+                            // set old value to a null character for the agent
+                            blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
+                            // set old value to a null character for the box
+                            blackboard.getVertex(box.row, box.col).cellChar = '\0';
+                            // move agent on the blackboard
+                            agent.row += currentTurnAction.agentRowDelta;
+                            agent.col += currentTurnAction.agentColDelta;
+                            // move the box on the blackboard
+                            box.row += currentTurnAction.boxRowDelta;
+                            box.col += currentTurnAction.boxColDelta;
+                            // set new value to the agent's id
+                            blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+                            // set new value to the box's id
+                            blackboard.getVertex(box.row, box.col).cellChar = box.id.charAt(0);
+
+                            // remove the action from the list for the agent
+                            agent.currentTask.actionsForPath.remove(0);
+                            break;
+                        default:
+                            break;
                     }
-                } else {
-                    agent.currentTask = agentToTasks.get(agentId).poll();
-                }
-            }
+
+
+//                    if (currentTurnAction != null && currentVertex != null) {
+//                        // add the turn for this move
+//                        agentTurnActions.add(currentTurnAction);
+//                        // set old value to a null character
+//                        blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
+//                        // move agent on the blackboard
+//                        agent.row += currentTurnAction.agentRowDelta;
+//                        agent.col += currentTurnAction.agentColDelta;
+//                        // set new value to the agent's id
+//                        blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+//
+//                        // remove the action from the list for the agent
+//                        agent.currentTask.actionsForPath.remove(0);
+////                        var temp = new ArrayList<Agent>();
+////                        temp.add(agent);
+//
+////                        blackboard.updateBlackboard(temp);
+////                        agent.currentTask.actionsForPath = agent.currentTask.actionsForPath;
+//                    }
+//                }
+//                else {
+//                    agent.currentTask = agentToTasks.get(agentId).poll();
+//                }
+//            }
 
 //            for (var action : agentTurnActions) {
 //                allActions.add(new ArrayList<>(Collections.singletonList(action)));
 //            }
 
-            allActions.add(agentTurnActions);
+                    allActions.add(agentTurnActions);
 
 //            act = agentTurnActions.toArray(new Action[0][0]);
 //            act = agentTurnActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
 
-            if (isGoalRepresentation()) {
-                act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
-                return act;
-            }
+//                    if (isGoalRepresentation()) {
+//                        act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+//                        return act;
+//                    }
 
 //            break;
 
-        }
+                }
+                if (agent.currentTask != null && agent.currentTask.actionsForPath != null && agent.currentTask.actionsForPath.isEmpty() && !agentToTasks.get(agentId).isEmpty())
+                {
+                    agent.currentTask = agentToTasks.get(agentId).poll();
+                    System.err.println("Agent " + agentId + " has a new task " + agent.currentTask.type);
+                }
 
-        // TODO: CLEAN UP THIS CODE
-        // Make actions a single list rather than a collection
+                // TODO: CLEAN UP THIS CODE
+                // Make actions a single list rather than a collection
 //        HashMap<Character, List<Action>> actionsForAgents = new HashMap<>();
 //        for(var agent: this.agentToTasks.entrySet()) {
 //            // get the agent to update
@@ -614,8 +684,8 @@ public class CentralizedPlanner implements KnowledgeSource {
 //
 //        List<List<Action>> actions = new ArrayList<>();
 
-        // this is a naive implementation
-        // You need to get the actions for each agent and execute them in order in the same time step
+                // this is a naive implementation
+                // You need to get the actions for each agent and execute them in order in the same time step
 //        for (var agent : actionsForAgents.entrySet()) {
 //            if (agent.getValue().size() == 0) {
 //                continue;
@@ -642,6 +712,12 @@ public class CentralizedPlanner implements KnowledgeSource {
 //
 //        }
 //        return null;
+            }
+            if (isGoalRepresentation()) {
+                act = allActions.stream().map(l -> l.toArray(new Action[0])).toArray(Action[][]::new);
+                return act;
+            }
+        }
     }
 
     @Override
