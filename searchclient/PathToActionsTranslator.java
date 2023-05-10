@@ -23,6 +23,10 @@ public class PathToActionsTranslator {
         Triple<Vertex, Vertex, Action> move = null;
         Blackboard blackboard = Blackboard.getInstance();
 
+        Agent agent = blackboard.agents.get(Integer.parseInt(task.agentId));
+
+        Agent copyAgent = new Agent(agent.id, agent.color, agent.row, agent.col);
+
         switch (task.type) {
             case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY:
                 for (int i = 0; i < task.path.size() - 1; i++) {
@@ -85,25 +89,87 @@ public class PathToActionsTranslator {
                 if (box == null) {
                     throw new RuntimeException("Box is null");
                 }
-                for (int i = 0; i < task.path.size(); i++) {
-                    if (i != task.path.size() - 1) {
-                        Vertex current = task.path.get(i);
-                        Vertex next = task.path.get(i + 1);
-                        // This is from the perspective of the agent
-                        // Agent Move South
-                        if (current.locRow < next.locRow && current.locCol == next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PushSS));
-                            // Agent Move North
-                        } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
-                            actions.add(Triple.of(current, next, Action.PushNN));
-                            // Agent Move East
-                        } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PushEE));
-                            // Agent Move West
-                        } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
-                            actions.add(Triple.of(current, next, Action.PushWW));
-                        }
+                for (int i = 0; i < task.path.size() - 1; i++) {
+//                    if (i != task.path.size()) {
+                    Vertex current = task.path.get(i);
+                    Vertex next = task.path.get(i + 1);
+                    // This is from the perspective of the agent
+                    // NN Push
+                    if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row - 2 == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushNN));
+                        copyAgent.row -= 1;
                     }
+                    // NE Push
+                    else if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row - 1 == next.locRow && copyAgent.col + 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushNE));
+                        copyAgent.row -= 1;
+                    }
+                    // NW Push
+                    else if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row - 1 == next.locRow && copyAgent.col - 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushNW));
+                        copyAgent.row -= 1;
+                    }
+                    // WS Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row + 1 == next.locRow && copyAgent.col - 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushWS));
+                        copyAgent.col -= 1;
+                    }
+                    // WN Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row - 1 == next.locRow && copyAgent.col - 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushWN));
+                        copyAgent.col -= 1;
+                    }
+                    // WW Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row == next.locRow && copyAgent.col - 2 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushWW));
+                        copyAgent.col -= 1;
+                    }
+                    // ES Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col + 1 == current.locCol && copyAgent.row + 1 == next.locRow && copyAgent.col + 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushES));
+                        copyAgent.col += 1;
+                    }
+                    // EN Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col + 1 == current.locCol && copyAgent.row - 1 == next.locRow && copyAgent.col + 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushEN));
+                        copyAgent.col += 1;
+                    }
+                    // EE Push
+                    else if (copyAgent.row == current.locRow && copyAgent.col + 1 == current.locCol && copyAgent.row == next.locRow && copyAgent.col + 2 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushEE));
+                        copyAgent.col += 1;
+                    }
+                    // SS Push
+                    else if (copyAgent.row + 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row + 2 == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushSS));
+                        copyAgent.row += 1;
+                    }
+                    // SE Push
+                    else if (copyAgent.row + 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row + 1 == next.locRow && copyAgent.col + 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushSE));
+                        copyAgent.row += 1;
+                    }
+                    // SW Push
+                    else if (copyAgent.row + 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row + 1 == next.locRow && copyAgent.col - 1 == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PushSW));
+                        copyAgent.row += 1;
+                    }
+
+
+//                        // Agent Move South
+//                        if (current.locRow < next.locRow && current.locCol == next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.PushSS));
+//                            // Agent Move North
+//                        } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.PushNN));
+//                            // Agent Move East
+//                        } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.PushEE));
+//                            // Agent Move West
+//                        } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.PushWW));
+//                        }
+//                    }
                 }
                 break;
             case PULL_BOX:
@@ -112,25 +178,86 @@ public class PathToActionsTranslator {
                 if (box2 == null) {
                     throw new RuntimeException("Box is null");
                 }
-                for (int i = 0; i < task.path.size(); i++) {
-                    if (i != task.path.size() - 1) {
+                for (int i = 0; i < task.path.size() - 1; i++) {
+//                    if (i != task.path.size() - 1) {
                     Vertex current = task.path.get(i);
                     Vertex next = task.path.get(i + 1);
                     // This is from the perspective of the agent
-                    // Agent Move South
-                    if (current.locRow < next.locRow && current.locCol == next.locCol) {
-                        actions.add(Triple.of(current, next, Action.PullSS));
-                        // Agent Move North
-                    } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+                    // NN Pull
+                    if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullNN));
-                        // Agent Move East
-                    } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+                        copyAgent.row -= 1;
+                    }
+                    // NE Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullNE));
+                        copyAgent.row -= 1;
+                    }
+                    // NW Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullNW));
+                        copyAgent.row -= 1;
+                    }
+                    // SS Pull
+                    if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullSS));
+                        copyAgent.row += 1;
+                    }
+                    // SE Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullSE));
+                        copyAgent.row += 1;
+                    }
+                    // SW Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullSW));
+                        copyAgent.row += 1;
+                    }
+                    // EE Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullEE));
-                        // Agent Move West
-                    } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+                        copyAgent.col += 1;
+                    }
+                    // ES Pull
+                    if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullES));
+                        copyAgent.col += 1;
+                    }
+                    // EN Pull
+                    if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullEN));
+                        copyAgent.col += 1;
+                    }
+                    // WW Pull
+                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullWW));
+                        copyAgent.col -= 1;
                     }
+                    // WS Pull
+                    if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullWS));
+                        copyAgent.col -= 1;
                     }
+                    // WN Pull
+                    if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullWN));
+                        copyAgent.col -= 1;
+                    }
+
+//                        // Agent Move South
+//                        if (current.locRow < next.locRow && current.locCol == next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.PullSS));
+//                            // Agent Move North
+//                        } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+//                            actions.add(Triple.of(current, next, Action.PullNN));
+//                            // Agent Move East
+//                        } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.PullEE));
+//                            // Agent Move West
+//                        } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+//                            actions.add(Triple.of(current, next, Action.PullWW));
+//                        }
+//                    }
                 }
                 break;
             // TODO: Maybe we want to split this into two moves: one to move the agent to the box, and one to move the box to the goal
@@ -154,13 +281,13 @@ public class PathToActionsTranslator {
                     // Agent Move South
                     if (current.locRow < next.locRow && current.locCol == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PushSS));
-                    // Agent Move North
+                        // Agent Move North
                     } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PushNN));
-                    // Agent Move East
+                        // Agent Move East
                     } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
                         actions.add(Triple.of(current, next, Action.PushEE));
-                    // Agent Move West
+                        // Agent Move West
                     } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
                         actions.add(Triple.of(current, next, Action.PushWW));
                     }
