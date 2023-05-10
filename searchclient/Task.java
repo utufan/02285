@@ -12,7 +12,7 @@ public class Task implements Comparable<Task> {
         if (this.priority == o.priority) {
             var blackboard = Blackboard.getInstance();
             switch (this.type){
-                case MOVE_BOX_TO_GOAL, MOVE_BOX_OUT_OF_WAY :
+                case MOVE_BOX_TO_GOAL, MOVE_BOX_OUT_OF_WAY, PUSH_BOX, PULL_BOX:
                     var thisDistanceFromPosTo = blackboard.getDistance(this.agentRow, this.agentCol,
                             this.taskRow, this.taskCol) +
                             blackboard.getDistance(this.taskRow, this.taskCol,
@@ -48,6 +48,10 @@ public class Task implements Comparable<Task> {
 
     public enum TaskType {
         MOVE_BOX_TO_GOAL,
+        // These next two tasks are going to be abstractions; we lose context on if the box pushed/pulled is for a goal or not
+        // but it is mostly because the processing and calculations needed to determine the moves are exactly the same
+        PUSH_BOX,
+        PULL_BOX,
         MOVE_AGENT_TO_BOX,
         MOVE_BOX_OUT_OF_WAY,
         MOVE_AGENT_OUT_OF_WAY,

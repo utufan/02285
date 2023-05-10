@@ -147,23 +147,34 @@ public class CentralizedPlanner implements KnowledgeSource {
                             // TODO: This is the scary part about the assignment. I think ordering is determined on
                             // queue insertion time, but I am not sure. If the next task doesn't line up well, we're fucked
                             // get the adjacent vertices around the box
+                            Task boxTask = null;
 
 
                             // The idea here is that the new Task Type will tell you the Action calculations needed to be performed, but it does result in overhead
                             Task moveTask = new Task(Task.TaskType.MOVE_AGENT_TO_BOX, Task.Priority.MEDIUM, agent.id, "", goal.id, agent.row, agent.col, box.row, box.col, box.row, box.col);
-                            Task task = new Task(Task.TaskType.MOVE_BOX_TO_GOAL, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
+                            // The problem on the follow task assignment is that we need to "peek" at the suspected path of the box to the goal, and determine if we need to push/pull it
+                            List<Vertex> boxPath = findPath(Utils.intMap, Utils.dist, box.row, box.col, goal.row, goal.col);
+                            Set boxTarget = Set.copyOf(boxPath);
+                            // if the path contains the agent's vertex, do a pull, otherwise push
+                            if (boxTarget.contains(blackBoard.getVertex(agent.row, agent.col))) {
+                                boxTask = new Task(Task.TaskType.PULL_BOX, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
+                            } else {
+                                boxTask = new Task(Task.TaskType.PUSH_BOX, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
+                            }
+
+//                            Task task = new Task(Task.TaskType.MOVE_BOX_TO_GOAL, Task.Priority.MEDIUM, agent.id, box.id, goal.id, agent.row, agent.col, box.row, box.col, goal.row, goal.col);
                             var temp = this.agentToTasks.get(agent.id);
                             if (temp == null) {
                                 this.agentToTasks.put(agent.id, new PriorityQueue<>());
                                 this.agentToTasks.get(agent.id).add(moveTask);
-                                this.agentToTasks.get(agent.id).add(task);
+                                this.agentToTasks.get(agent.id).add(boxTask);
                             } else {
                                 this.agentToTasks.get(agent.id).add(moveTask);
-                                this.agentToTasks.get(agent.id).add(task);
+                                this.agentToTasks.get(agent.id).add(boxTask);
                             }
                             var agentToBox = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, box.row, box.col);
                             var boxToGoal = findPath(blackboard.intMap, blackboard.dist, box.row, box.col, goal.row, goal.col);
-                            task.path = boxToGoal;
+                            boxTask.path = boxToGoal;
 
                             printDistancesFromCell(blackboard.intMap, blackboard.dist, agent.row, agent.col);
 
@@ -525,6 +536,14 @@ public class CentralizedPlanner implements KnowledgeSource {
                                 break;
                             case MOVE_BOX_OUT_OF_WAY:
                                 break;
+                            // Whose perspective are we wanting to look at for the PUSH/PULL box?
+                            case PUSH_BOX:
+                                Vertex box = blackboard.getVertex(agent.currentTask.taskRow, agent.currentTask.taskCol);
+                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, box.locRow, box.locCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                                break;
+                            case PULL_BOX:
+                                Vertex box2 = blackboard.getVertex(agent.currentTask.taskRow, agent.currentTask.taskCol);
+                                agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, box2.locRow, box2.locCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
                             case MOVE_BOX_TO_GOAL:
                                 agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
                                 break;
@@ -564,7 +583,8 @@ public class CentralizedPlanner implements KnowledgeSource {
                             break;
                         case MOVE_BOX_OUT_OF_WAY:
                             break;
-                        case MOVE_BOX_TO_GOAL:
+                        // I am pretty sure the deltas also work the same here for both Pushing and Pulling
+                        case MOVE_BOX_TO_GOAL, PUSH_BOX, PULL_BOX:
                             // add the turn for this move
                             agentTurnActions.add(currentTurnAction);
                             // This is going to be a naive way to do this, but we need to get the box that is near the current agent
@@ -622,10 +642,10 @@ public class CentralizedPlanner implements KnowledgeSource {
                             break;
                         case MOVE_BOX_OUT_OF_WAY:
                             break;
-                        case MOVE_BOX_TO_GOAL:
-                            // This should involve the agents location
-                            // TODO: WE'VE REALLY FUCKED THINGS UP WITH THIS
-                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, agent.row, agent.col, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                        // Same thing here, should be the same
+                        case PUSH_BOX:
+                            Vertex box = blackboard.getVertex(agent.currentTask.taskRow, agent.currentTask.taskCol);
+                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, box.locRow, box.locCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
                             agent.currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
                             Action currentTurnAction2 = agent.currentTask.actionsForPath.get(0).getRight();
                             Vertex currentVertex2 = agent.currentTask.actionsForPath.get(0).getLeft();
@@ -640,25 +660,101 @@ public class CentralizedPlanner implements KnowledgeSource {
                                     break;
                                 }
                             }
-                            Box box = blackboard.getBox(boxVertex.locRow, boxVertex.locCol);
+                            Box blackboardBox = blackboard.getBox(boxVertex.locRow, boxVertex.locCol);
                             // set old value to a null character for the agent
                             blackboard.getVertex(currentVertex2.locRow, currentVertex2.locCol).cellChar = '\0';
                             // set old value to a null character for the box
-                            blackboard.getVertex(box.row, box.col).boxChar = '\0';
+                            blackboard.getVertex(blackboardBox.row, blackboardBox.col).boxChar = '\0';
                             // move agent on the blackboard
                             agent.row += currentTurnAction2.agentRowDelta;
                             agent.col += currentTurnAction2.agentColDelta;
                             // move the box on the blackboard
-                            box.row += currentTurnAction2.boxRowDelta;
-                            box.col += currentTurnAction2.boxColDelta;
+                            blackboardBox.row += currentTurnAction2.boxRowDelta;
+                            blackboardBox.col += currentTurnAction2.boxColDelta;
                             // set new value to the agent's id
                             blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
                             // set new value to the box's id
-                            blackboard.getVertex(box.row, box.col).boxChar = box.id.charAt(0);
+                            blackboard.getVertex(blackboardBox.row, blackboardBox.col).boxChar = blackboardBox.id.charAt(0);
 
                             // remove the action from the list for the agent
                             agent.currentTask.actionsForPath.remove(0);
                             break;
+                        case PULL_BOX:
+                            Vertex box2 = blackboard.getVertex(agent.currentTask.taskRow, agent.currentTask.taskCol);
+                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, box2.locRow, box2.locCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+                            agent.currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
+                            Action currentTurnAction3 = agent.currentTask.actionsForPath.get(0).getRight();
+                            Vertex currentVertex3 = agent.currentTask.actionsForPath.get(0).getLeft();
+
+                            agentTurnActions.add(currentTurnAction3);
+                            // This is going to be a naive way to do this, but we need to get the box that is near the current agent
+                            List<Vertex> verticesAdjacentToAgent2 = blackboard.mapRepresentation.getAdjVertices(agent.row, agent.col);
+                            Vertex boxVertex2 = null;
+                            for (Vertex v : verticesAdjacentToAgent2) {
+                                if (v.boxChar == agent.currentTask.boxId.charAt(0)) {
+                                    boxVertex2 = v;
+                                    break;
+                                }
+                            }
+                            Box blackboardBox2 = blackboard.getBox(boxVertex2.locRow, boxVertex2.locCol);
+                            // set old value to a null character for the agent
+                            blackboard.getVertex(currentVertex3.locRow, currentVertex3.locCol).cellChar = '\0';
+                            // set old value to a null character for the box
+                            blackboard.getVertex(blackboardBox2.row, blackboardBox2.col).boxChar = '\0';
+                            // move agent on the blackboard
+                            agent.row += currentTurnAction3.agentRowDelta;
+                            agent.col += currentTurnAction3.agentColDelta;
+                            // move the box on the blackboard
+                            blackboardBox2.row += currentTurnAction3.boxRowDelta;
+                            blackboardBox2.col += currentTurnAction3.boxColDelta;
+                            // set new value to the agent's id
+                            blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+                            // set new value to the box's id
+                            blackboard.getVertex(blackboardBox2.row, blackboardBox2.col).boxChar = blackboardBox2.id.charAt(0);
+
+                            // remove the action from the list for the agent
+                            agent.currentTask.actionsForPath.remove(0);
+                            break;
+//                        case MOVE_BOX_TO_GOAL:
+//                            // This should involve the agents location
+//                            // TODO: WE'VE REALLY FUCKED THINGS UP WITH THIS
+//
+//                            // We have to get the box here
+//                            Vertex box = blackboard.getVertex(agent.currentTask.taskRow, agent.currentTask.taskCol);
+//                            agent.currentTask.path = findPath(blackboard.intMap, blackboard.dist, box.locRow, box.locCol, agent.currentTask.destinationRow, agent.currentTask.destinationCol);
+//                            agent.currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
+//                            Action currentTurnAction2 = agent.currentTask.actionsForPath.get(0).getRight();
+//                            Vertex currentVertex2 = agent.currentTask.actionsForPath.get(0).getLeft();
+//
+//                            agentTurnActions.add(currentTurnAction2);
+//                            // This is going to be a naive way to do this, but we need to get the box that is near the current agent
+//                            List<Vertex> verticesAdjacentToAgent = blackboard.mapRepresentation.getAdjVertices(agent.row, agent.col);
+//                            Vertex boxVertex = null;
+//                            for (Vertex v : verticesAdjacentToAgent) {
+//                                if (v.boxChar == agent.currentTask.boxId.charAt(0)) {
+//                                    boxVertex = v;
+//                                    break;
+//                                }
+//                            }
+//                            Box blackboardBox = blackboard.getBox(boxVertex.locRow, boxVertex.locCol);
+//                            // set old value to a null character for the agent
+//                            blackboard.getVertex(currentVertex2.locRow, currentVertex2.locCol).cellChar = '\0';
+//                            // set old value to a null character for the box
+//                            blackboard.getVertex(blackboardBox.row, blackboardBox.col).boxChar = '\0';
+//                            // move agent on the blackboard
+//                            agent.row += currentTurnAction2.agentRowDelta;
+//                            agent.col += currentTurnAction2.agentColDelta;
+//                            // move the box on the blackboard
+//                            blackboardBox.row += currentTurnAction2.boxRowDelta;
+//                            blackboardBox.col += currentTurnAction2.boxColDelta;
+//                            // set new value to the agent's id
+//                            blackboard.getVertex(agent.row, agent.col).cellChar = agent.id.charAt(0);
+//                            // set new value to the box's id
+//                            blackboard.getVertex(blackboardBox.row, blackboardBox.col).boxChar = blackboardBox.id.charAt(0);
+//
+//                            // remove the action from the list for the agent
+//                            agent.currentTask.actionsForPath.remove(0);
+//                            break;
                         default:
                             break;
                     }

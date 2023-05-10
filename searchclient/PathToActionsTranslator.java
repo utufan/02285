@@ -78,12 +78,67 @@ public class PathToActionsTranslator {
                 break;
 //            case MOVE_AGENT_OUT_OF_WAY:
 //                break;
+            // Now we are going to split it apart
+            case PUSH_BOX:
+                // The Push Box is going to be from the perspective of the box...?
+                Box box = blackboard.getBox(task.taskRow, task.taskCol);
+                if (box == null) {
+                    throw new RuntimeException("Box is null");
+                }
+                for (int i = 0; i < task.path.size(); i++) {
+                    if (i != task.path.size() - 1) {
+                        Vertex current = task.path.get(i);
+                        Vertex next = task.path.get(i + 1);
+                        // This is from the perspective of the agent
+                        // Agent Move South
+                        if (current.locRow < next.locRow && current.locCol == next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PushSS));
+                            // Agent Move North
+                        } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+                            actions.add(Triple.of(current, next, Action.PushNN));
+                            // Agent Move East
+                        } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PushEE));
+                            // Agent Move West
+                        } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+                            actions.add(Triple.of(current, next, Action.PushWW));
+                        }
+                    }
+                }
+                break;
+            case PULL_BOX:
+                // The Push Box is going to be from the perspective of the box...?
+                Box box2 = blackboard.getBox(task.taskRow, task.taskCol);
+                if (box2 == null) {
+                    throw new RuntimeException("Box is null");
+                }
+                for (int i = 0; i < task.path.size(); i++) {
+                    if (i != task.path.size() - 1) {
+                    Vertex current = task.path.get(i);
+                    Vertex next = task.path.get(i + 1);
+                    // This is from the perspective of the agent
+                    // Agent Move South
+                    if (current.locRow < next.locRow && current.locCol == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullSS));
+                        // Agent Move North
+                    } else if (current.locRow > next.locRow && current.locCol == next.locCol) {
+                        actions.add(Triple.of(current, next, Action.PullNN));
+                        // Agent Move East
+                    } else if (current.locCol < next.locCol && current.locRow == next.locRow) {
+                        actions.add(Triple.of(current, next, Action.PullEE));
+                        // Agent Move West
+                    } else if (current.locCol > next.locCol && current.locRow == next.locRow) {
+                        actions.add(Triple.of(current, next, Action.PullWW));
+                    }
+                    }
+                }
+                break;
             // TODO: Maybe we want to split this into two moves: one to move the agent to the box, and one to move the box to the goal
             case MOVE_BOX_TO_GOAL:
                 // we need a case to handle if the path size is one or not
                 // The problem here is that the agent needs to move to the box, agent -> task, and then from task->destination
-                Box box = blackboard.getBox(task.taskRow, task.taskCol);
-                if (box == null) {
+                Box box3 = blackboard.getBox(task.taskRow, task.taskCol);
+                if (box3 == null) {
                     throw new RuntimeException("Box is null");
                 }
 

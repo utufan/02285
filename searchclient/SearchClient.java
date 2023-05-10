@@ -108,7 +108,8 @@ public class SearchClient
         var mapRep = Utils.initialMapRepresentation(levelLines, wallEquivalents);
         var initialMap = Utils.initialMapRepresentation(levelLines, wallEquivalents);
 
-        printDistancesFromCell(Utils.intMap, Utils.dist, 2,2);
+        // TODO: THIS REALLY NEEDS TO BE DYNAMIC BASED ON THE MAP REPRESENTATION SO IT PICKS A CELL THAT IS VALID
+        printDistancesFromCell(Utils.intMap, Utils.dist, 1,1);
 
         int[][] agents = new int[numRows][numCols];
         List<Character> boxesIDs = new ArrayList<>();
