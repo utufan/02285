@@ -549,6 +549,11 @@ public class CentralizedPlanner implements KnowledgeSource {
                     // I think this is where we, once again, have to do a switch statement based on the agent's current task
                     switch (agent.currentTask.type) {
                         case MOVE_TO_DESTINATION, MOVE_AGENT_OUT_OF_WAY, MOVE_AGENT_TO_BOX:
+                            // check if this action is allowed
+                            boolean result = isApplicable(Integer.parseInt(agent.id), currentTurnAction);
+                            if (!result) {
+                                throw new RuntimeException("Action is not allowed");
+                            }
                             // add the turn for this move
                             agentTurnActions.add(currentTurnAction);
                             // set old value to a null character
@@ -565,6 +570,11 @@ public class CentralizedPlanner implements KnowledgeSource {
                         case MOVE_BOX_OUT_OF_WAY:
                             break;
                         case MOVE_BOX_TO_GOAL:
+                            // check if this action is allowed
+                            boolean result2 = isApplicable(Integer.parseInt(agent.id), currentTurnAction);
+                            if (!result2) {
+                                throw new RuntimeException("Action is not allowed");
+                            }
                             // add the turn for this move
                             agentTurnActions.add(currentTurnAction);
                             // This is going to be a naive way to do this, but we need to get the box that is near the current agent
@@ -608,6 +618,11 @@ public class CentralizedPlanner implements KnowledgeSource {
                             agent.currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
                             Action currentTurnAction = agent.currentTask.actionsForPath.get(0).getRight();
                             Vertex currentVertex = agent.currentTask.actionsForPath.get(0).getLeft();
+
+                            boolean result = isApplicable(Integer.parseInt(agent.id), currentTurnAction);
+                            if (!result) {
+                                throw new RuntimeException("Action is not allowed");
+                            }
                             agentTurnActions.add(currentTurnAction);
 
                             blackboard.getVertex(currentVertex.locRow, currentVertex.locCol).cellChar = '\0';
@@ -629,6 +644,11 @@ public class CentralizedPlanner implements KnowledgeSource {
                             agent.currentTask.actionsForPath = PathToActionsTranslator.translatePath(blackboard.agents.get(Character.digit(agentId.charAt(0), 16)).currentTask);
                             Action currentTurnAction2 = agent.currentTask.actionsForPath.get(0).getRight();
                             Vertex currentVertex2 = agent.currentTask.actionsForPath.get(0).getLeft();
+
+                            boolean result2 = isApplicable(Integer.parseInt(agent.id), currentTurnAction2);
+                            if (!result2) {
+                                throw new RuntimeException("Action is not allowed");
+                            }
 
                             agentTurnActions.add(currentTurnAction2);
                             // This is going to be a naive way to do this, but we need to get the box that is near the current agent
@@ -677,6 +697,195 @@ public class CentralizedPlanner implements KnowledgeSource {
                 return act;
             }
         }
+    }
+
+    private boolean isApplicable(int agentId, Action action) {
+        Blackboard blackboard = Blackboard.getInstance();
+        Agent agent = blackboard.agents.get(agentId);
+        // I want a copy of the agent and now the underlying agent
+        Agent copyAgent = new Agent(agent.id, agent.color, agent.row, agent.col);
+
+
+//        int agentRow = this.agentRows[agent];
+//        int agentCol = this.agentCols[agent];
+//        Color agentColor = State.agentColors[agent];
+        int boxRow;
+        int boxCol;
+        char box;
+        int destinationRow;
+        int destinationCol;
+        switch (action.type) {
+            case NoOp:
+                return true;
+
+            case Move:
+                destinationRow = copyAgent.row + action.agentRowDelta;
+                destinationCol = copyAgent.col + action.agentColDelta;
+                return this.cellIsFree(destinationRow, destinationCol);
+
+            case Push:
+                //Get the "old" coordinates of the box that has been pushed
+                boxRow = copyAgent.row + action.agentRowDelta;
+                boxCol = copyAgent.col + action.agentColDelta;
+
+                //Get Name (char) of Box at the "old" position
+                box = boxAt(boxRow, boxCol);
+
+                //Check if that position was marked with a box indicator and check if the agent is approved (colour check) to move the box.
+                //convert box from letter into number A = 0, B = 1, etc.
+                if (box == '\0' || State.boxColors[box - 'A'] != copyAgent.color) {
+                    return false;
+                }
+
+                //Confirm that this move was legal by checking the constraints of walls and other obstacles in the grid.
+                return this.cellIsFree(boxRow + action.boxRowDelta, boxCol + action.boxColDelta);
+
+            case Pull:
+                //Get the "old" coordinates of the box that has been pulled
+                boxRow = copyAgent.row - action.boxRowDelta;
+                boxCol = copyAgent.col - action.boxColDelta;
+                box = boxAt(boxRow, boxCol);
+
+                //Check if that position was marked with a box indicator and check if the agent is approved (colour check) to move the box.
+                //convert box from letter into number A = 0, B = 1, etc.
+                if (box == '\0' || State.boxColors[box - 'A'] != copyAgent.color) {
+                    return false;
+                }
+
+                //Calculate the new row position of the agent
+                destinationRow = copyAgent.row + action.agentRowDelta;
+                destinationCol = copyAgent.col + action.agentColDelta;
+
+                //Confirm that this move is legal by checking the constraints of walls and other obstacles in the grid.
+                return this.cellIsFree(destinationRow, destinationCol);
+        }
+        // Unreachable:
+        return false;
+    }
+
+    private boolean isConflicting(List<Action> jointAction)
+    {
+//        int numAgents = this.agentRows.length;
+        Blackboard blackboard = Blackboard.getInstance();
+        int numAgents = blackboard.agents.size();
+
+        int[] destinationRows = new int[numAgents]; // row of new cell to become occupied by action
+        int[] destinationCols = new int[numAgents]; // column of new cell to become occupied by action
+        int[] boxRows = new int[numAgents]; // current row of box moved by action
+        int[] boxCols = new int[numAgents]; // current column of box moved by action
+        int[] destinationRowsBoxes = new int[numAgents]; // row of new cell to become occupied by action
+        int[] destinationColsBoxes = new int[numAgents]; // row of new cell to become occupied by action
+
+        // Collect cells to be occupied and boxes to be moved
+        for (int i = 0; i < numAgents; ++i)
+        {
+            Action action = jointAction.get(i);
+            Agent agent = blackboard.agents.get(i);
+            Agent copyAgent = new Agent(agent.id, agent.color, agent.row, agent.col);
+            int boxRow;
+            int boxCol;
+
+            destinationRows[i] = copyAgent.row + action.agentRowDelta;
+            destinationCols[i] = copyAgent.col + action.agentColDelta;
+
+            switch (action.type)
+            {
+                case NoOp:
+
+                    break;
+
+                case Move:
+
+                    boxRows[i] = copyAgent.row; // Distinct dummy value
+                    boxCols[i] = copyAgent.col; // Distinct dummy value
+                    destinationRowsBoxes[i] = copyAgent.row + action.agentRowDelta;
+                    destinationColsBoxes[i] = copyAgent.col + action.agentColDelta;
+
+                    break;
+
+                case Push:
+                    // Current row of the box is the destination of the agent
+                    boxRows[i] = destinationRows[i];
+                    boxCols[i] = destinationCols[i];
+                    // destination row of the box is destionation of agent plus the action offset
+                    destinationRowsBoxes[i] = destinationRows[i] + action.boxRowDelta;
+                    destinationColsBoxes[i] = destinationCols[i] + action.boxColDelta;
+
+                    break;
+
+                case Pull:
+                    //current row of the box is current row of the agent reversed with the actions
+                    boxRows[i] = copyAgent.row + action.boxRowDelta;
+                    boxCols[i] = copyAgent.col + action.boxColDelta;
+                    //destination row of the box is the current row of the agent
+                    destinationRowsBoxes[i] = copyAgent.row;
+                    destinationColsBoxes[i] = copyAgent.col;
+
+                    break;
+            }
+        }
+
+        for (int a1 = 0; a1 < numAgents; ++a1)
+        {
+            if (jointAction.get(a1) == Action.NoOp)
+            {
+                continue;
+            }
+
+            for (int a2 = a1 + 1; a2 < numAgents; ++a2)
+            {
+                if (jointAction.get(a2) == Action.NoOp)
+                {
+                    continue;
+                }
+
+                // Moving into same cell? I think this works for both agent and the boxes so no need to write
+                // another check for the boxes
+                if (destinationRows[a1] == destinationRows[a2] && destinationCols[a1] == destinationCols[a2])
+                {
+                    return true;
+                }
+                // I disagree now with what I wrote above, below statement checks i
+                if ((destinationRows[a1] == destinationRowsBoxes[a2] && destinationCols[a1] == destinationColsBoxes[a2]) || (destinationRowsBoxes[a1] == destinationRows[a2] && destinationColsBoxes[a1] == destinationCols[a2]))
+                {
+                    return true;
+                }
+                // checks if two boxes are moving into the same sell
+                if (destinationRowsBoxes[a1] == destinationRowsBoxes[a2] && destinationColsBoxes[a1] == destinationColsBoxes[a2])
+                {
+                    return true;
+                }
+                /* Checks if agents are moving the same box
+                boxrows current row of box moved by action
+                boxcols current column of box moved by action
+                */
+                if(boxRows[a1] == boxRows[a2] && boxCols[a1] == boxCols[a2]){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean cellIsFree(int row, int col)
+    {
+//        return !this.walls[row][col] && this.boxes[row][col] == 0 && this.agentAt(row, col) == 0;
+         return boxAt(row, col) == '\0' && agentAt(row, col) == '\0';
+    }
+
+    private char agentAt(int row, int col)
+    {
+        Blackboard blackboard = Blackboard.getInstance();
+        Vertex vertex = blackboard.getVertex(row, col);
+        return vertex.cellChar;
+    }
+
+    private char boxAt(int row, int col)
+    {
+        Blackboard blackboard = Blackboard.getInstance();
+        Vertex vertex = blackboard.getVertex(row, col);
+        return vertex.boxChar;
     }
 
     @Override
