@@ -189,57 +189,57 @@ public class PathToActionsTranslator {
                         copyAgent.row -= 1;
                     }
                     // NE Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullNE));
                         copyAgent.row -= 1;
                     }
                     // NW Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullNW));
                         copyAgent.row -= 1;
                     }
                     // SS Pull
-                    if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row - 1 == current.locRow && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullSS));
                         copyAgent.row += 1;
                     }
                     // SE Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col == current.locCol + 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullSE));
                         copyAgent.row += 1;
                     }
                     // SW Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullSW));
                         copyAgent.row += 1;
                     }
                     // EE Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col - 1 == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullEE));
                         copyAgent.col += 1;
                     }
                     // ES Pull
-                    if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullES));
                         copyAgent.col += 1;
                     }
                     // EN Pull
-                    if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullEN));
                         copyAgent.col += 1;
                     }
                     // WW Pull
-                    if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow && copyAgent.col == current.locCol - 1 && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullWW));
                         copyAgent.col -= 1;
                     }
                     // WS Pull
-                    if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow + 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullWS));
                         copyAgent.col -= 1;
                     }
                     // WN Pull
-                    if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
+                    else if (copyAgent.row == current.locRow - 1 && copyAgent.col == current.locCol && copyAgent.row == next.locRow && copyAgent.col == next.locCol) {
                         actions.add(Triple.of(current, next, Action.PullWN));
                         copyAgent.col -= 1;
                     }

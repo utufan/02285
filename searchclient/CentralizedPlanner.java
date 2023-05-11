@@ -706,6 +706,11 @@ public class CentralizedPlanner implements KnowledgeSource {
                             Action currentTurnAction3 = agent.currentTask.actionsForPath.get(0).getRight();
                             Vertex currentVertex3 = agent.currentTask.actionsForPath.get(0).getLeft();
 
+                            boolean result3 = isApplicable(Integer.parseInt(agent.id), currentTurnAction3);
+                            if (!result3) {
+                                throw new RuntimeException("Action is not allowed");
+                            }
+
                             agentTurnActions.add(currentTurnAction3);
                             // This is going to be a naive way to do this, but we need to get the box that is near the current agent
                             List<Vertex> verticesAdjacentToAgent2 = blackboard.mapRepresentation.getAdjVertices(agent.row, agent.col);
